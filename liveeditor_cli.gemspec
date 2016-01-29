@@ -3,7 +3,7 @@ $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 require 'live_editor/cli/version'
 
 Gem::Specification.new do |gem|
-  gem.name          = 'live_editor_cli'
+  gem.name          = 'liveeditor_cli'
   gem.version       = LiveEditor::Cli::VERSION
   gem.authors       = ['Chris Peters']
   gem.email         = ['webmaster@liveeditorcms.com']
