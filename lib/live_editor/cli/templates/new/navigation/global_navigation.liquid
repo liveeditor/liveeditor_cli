@@ -1,0 +1,7 @@
+<nav class="global-nav">
+  {% for link in navigation.links %}
+    <a href="{{ link.url }}" class="global-nav-link {% if link.active? %}is-active{% endif %}">
+      {{ link.title }}
+    </a>
+  {% endfor %}
+</nav>

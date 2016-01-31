@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>{{ page_title }}</title>
+
+  {% if page_description %}
+    <meta name="description" content="{{ page_description }}">
+  {% endif %}
+
+  {% if page_keywords %}
+    <meta name="keywords" content="{{ page_keywords }}">
+  {% endif %}
+
+  <meta name="robots" content="{{ page_robots }}">
+
+  {% if canonical_url %}
+    <link rel="canonical" href="{{ canonical_url }}">
+  {% endif %}
+
+  {{ 'css/site.css' | asset_url | stylesheet_tag }}
+  {{ 'js/init.js' | asset_url | script_tag }}
+</head>
+
+<body>
+  <header>
+    {% navigation 'global' %}
+  </header>
+
+  <main>
+    {% region 'main' %}
+  </main>
+
+  <footer>
+    <p>
+      Copyright &copy; {{ 'now' | date: '%Y' }} {{ site.title }}. All rights reserved.
+    </p>
+  </footer>
+
+  {{ 'js/site.js' | asset_url | script_tag }}
+</body>
+</html>

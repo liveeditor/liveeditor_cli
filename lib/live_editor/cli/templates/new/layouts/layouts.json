@@ -1,0 +1,14 @@
+{
+  "layouts": [
+    {
+      "title": "Site",
+      "description": "",
+      "regions": [
+        {
+          "title": "Main",
+          "description": ""
+        }
+      ]
+    }
+  ]
+}

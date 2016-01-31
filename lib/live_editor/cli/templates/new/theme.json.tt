@@ -1,0 +1,10 @@
+// Use this file to configure your Live Editor theme.
+//
+// More info:
+// http://www.liveeditorcms.com/support/designers/themes/file-structure/
+
+{
+  "title": "<%= theme_title %>",
+  "description": "",
+  "homepage": ""
+}

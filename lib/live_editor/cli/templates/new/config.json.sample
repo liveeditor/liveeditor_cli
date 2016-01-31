@@ -1,0 +1,14 @@
+// Instructions:
+// Copy this file into config.json and configure for your Live Editor account.
+//
+// More info:
+// http://www.liveeditorcms.com/support/designers/themes/file-structure/
+//
+// Don't have a Live Editor account?
+// Sign up at www.liveeditorcms.com.
+
+{
+  "api_key": "",
+  "secret_key": "",
+  "admin_domain": ".liveeditorapp.com"
+}

@@ -12,13 +12,13 @@ Gem::Specification.new do |gem|
   gem.homepage      = 'http://www.liveeditorcms.com/support/designers/themes/development-environment/'
   gem.license       = 'MIT'
 
-  gem.executables   = gem.files.grep(%r{^bin/}).map{ |f| File.basename(f) }
   gem.test_files    = gem.files.grep(%r{^(test|spec|features)/})
   gem.require_paths = ['lib']
   gem.executables   = ['liveeditor']
 
-  gem.add_development_dependency 'rake',      '~> 10.0.4'
-  gem.add_development_dependency 'rspec',     '~> 3.4.0'
+  gem.add_development_dependency 'rake',  '~> 10.0.4'
+  gem.add_development_dependency 'rspec', '~> 3.4.0'
 
-  gem.add_dependency 'thor',                  '~> 0.19.1'
+  gem.add_dependency 'thor',              '~> 0.19.1'
+  gem.add_dependency 'activesupport',     '~> 4.2.5.1'
 end
