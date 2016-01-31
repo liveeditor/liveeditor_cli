@@ -26,11 +26,11 @@ module LiveEditor
         say "Live Editor CLI v#{LiveEditor::Cli::VERSION}"
       end
 
-      desc 'new NAME', 'Create a new skeleton theme'
-      def new(name)
+      desc 'new TITLE', 'Create a new skeleton theme'
+      def new(title)
         # Figure out values for title, folder name, and path.
-        @title = title_for_name(name)
-        @folder_name = path_for_name(name)
+        @title = title_for_title_arg(title)
+        @folder_name = path_for_title_arg(title)
         say "Creating a new Live Editor theme titled \"#{@title}\"..."
 
         # Copy source to new theme folder name.
@@ -46,22 +46,22 @@ module LiveEditor
 
     private
 
-      # Creates a path for a theme with a given name.
+      # Creates a path for a theme with a given title argument.
       #
       # Examples:
       # my_theme -> my_theme
       # My Theme -> my_theme
-      def path_for_name(name)
-        name =~ /_/ ? name : name.underscore.gsub(' ', '_')
+      def path_for_title_arg(title)
+        title =~ /_/ ? title : title.underscore.gsub(' ', '_')
       end
 
-      # Creates a title for a theme with a given name.
+      # Creates a title for a theme with a given title argument.
       #
       # Examples:
       # my_theme -> My Theme
       # My Theme -> My Theme
-      def title_for_name(name)
-        name =~ /_/ ? name.titleize : name
+      def title_for_title_arg(title)
+        title =~ /_/ ? title.titleize : title
       end
     end
   end

@@ -14,8 +14,8 @@ RSpec.describe LiveEditor::Cli::Main do
       FileUtils.rm_rf(File.dirname(File.realpath(__FILE__)).sub('spec', 'my_theme'))
     end
 
-    context 'with underscored NAME' do
-      it "echoes new theme's NAME" do
+    context 'with underscored TITLE' do
+      it "echoes new theme's TITLE" do
         output = capture(:stdout) { subject.new('my_theme') }
         expect(output).to match /Creating a new Live Editor theme titled "My Theme".../
       end
@@ -47,7 +47,7 @@ RSpec.describe LiveEditor::Cli::Main do
       end
     end
 
-    context 'with titleized NAME' do
+    context 'with titleized TITLE' do
       it "echoes new theme's name when titleized" do
         output = capture(:stdout) { subject.new('My Theme') }
         expect(output).to match /Creating a new Live Editor theme titled "My Theme".../
