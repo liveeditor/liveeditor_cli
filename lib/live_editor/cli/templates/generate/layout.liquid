@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>{{ page_title }}</title>
+
+  {% if page_description %}
+    <meta name="description" content="{{ page_description }}">
+  {% endif %}
+
+  {% if page_keywords %}
+    <meta name="keywords" content="{{ page_keywords }}">
+  {% endif %}
+
+  <meta name="robots" content="{{ page_robots }}">
+
+  {% if canonical_url %}
+    <link rel="canonical" href="{{ canonical_url }}">
+  {% endif %}
+</head>
+
+<body>
+</body>
+</html>

@@ -1,5 +1,6 @@
 require 'thor'
 require 'live_editor/cli/version'
+require 'live_editor/cli/generate'
 require 'active_support/core_ext/string'
 
 module LiveEditor
@@ -29,39 +30,23 @@ module LiveEditor
       desc 'new TITLE', 'Create a new skeleton theme'
       def new(title)
         # Figure out values for title, folder name, and path.
-        @title = title_for_title_arg(title)
-        @folder_name = path_for_title_arg(title)
+        title_naming = LiveEditor::Cli::naming_for(title)
+        @title = title_naming[:title]
         say "Creating a new Live Editor theme titled \"#{@title}\"..."
 
         # Copy source to new theme folder name.
-        directory 'new', @folder_name
+        directory 'new', title_naming[:var_name]
       end
+
+      desc 'generate SUBCOMMAND', 'Generator for new layouts, content templates, navigation menus, etc.'
+      map 'g' => :generate
+      subcommand 'generate', LiveEditor::Cli::Generate
 
       # Thor should not include anything in this block in its generated help docs.
       no_commands do
         def theme_title
           @title
         end
-      end
-
-    private
-
-      # Creates a path for a theme with a given title argument.
-      #
-      # Examples:
-      # my_theme -> my_theme
-      # My Theme -> my_theme
-      def path_for_title_arg(title)
-        title =~ /_/ ? title : title.underscore.gsub(' ', '_')
-      end
-
-      # Creates a title for a theme with a given title argument.
-      #
-      # Examples:
-      # my_theme -> My Theme
-      # My Theme -> My Theme
-      def title_for_title_arg(title)
-        title =~ /_/ ? title.titleize : title
       end
     end
   end
