@@ -18,13 +18,15 @@ module LiveEditor
         layout_config_loc = Dir.pwd + '/layouts/layouts.json'
         title_naming = LiveEditor::Cli::naming_for(title)
 
+        say "Creating a new Live Editor layout titled \"#{title_naming[:title]}\"..."
+
         # If the layouts config file is already there, append new layout to it.
-        say 'Adding entry to layouts/layouts.json...'
+        say '      append  layouts/layouts.json'
         if File.exist?(layout_config_loc)
           begin
             layout_config = JSON.parse(File.read(layout_config_loc))
           rescue Exception => e
-            say 'The file at layouts/layout.json does not have valid JSON markup.', color: :red
+            say 'The file at layouts/layout.json does not have valid JSON markup.', :red
             exit
           end
 

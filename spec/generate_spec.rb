@@ -28,6 +28,11 @@ RSpec.describe LiveEditor::Cli::Generate do
       end
 
       context 'with titleized TITLE' do
+        it "echoes new layout's TITLE" do
+          output = capture(:stdout) { subject.layout('My Layout') }
+          expect(output).to match /Creating a new Live Editor layout titled "My Layout".../
+        end
+
         it 'adds the new theme entry into layouts.json' do
           output = capture(:stdout) { subject.layout('My Layout') }
           layout_config = JSON.parse(File.read(theme_root + '/layouts/layouts.json'))
@@ -42,6 +47,11 @@ RSpec.describe LiveEditor::Cli::Generate do
       end
 
       context 'with underscored TITLE' do
+        it "echoes new layout's TITLE" do
+          output = capture(:stdout) { subject.layout('my_layout') }
+          expect(output).to match /Creating a new Live Editor layout titled "My Layout".../
+        end
+
         it 'adds the new theme entry into layouts.json' do
           output = capture(:stdout) { subject.layout('my_layout') }
           layout_config = JSON.parse(File.read(theme_root + '/layouts/layouts.json'))
