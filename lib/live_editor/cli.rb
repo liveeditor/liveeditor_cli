@@ -6,7 +6,7 @@ module LiveEditor
     # 2. `var_name` is the underscored version. Ex. 'my_theme'
     def self.naming_for(title)
       {
-        title: title =~ /_/ ? title.titleize : title,
+        title: title =~ /[A-Z]/ ? title : title.titleize,
         var_name: title =~ /_/ ? title : title.underscore.gsub(' ', '_')
       }
     end
