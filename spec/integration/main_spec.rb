@@ -11,7 +11,7 @@ RSpec.describe LiveEditor::Cli::Main do
   describe 'new' do
     # Clean up generated my_theme directory.
     after do
-      FileUtils.rm_rf(File.dirname(File.realpath(__FILE__)).sub('spec', 'my_theme'))
+      FileUtils.rm_rf(File.dirname(File.realpath(__FILE__)).sub('integration', 'my_theme'))
     end
 
     context 'with underscored TITLE' do
@@ -24,7 +24,7 @@ RSpec.describe LiveEditor::Cli::Main do
         output = capture(:stdout) { subject.new('my_theme') }
 
         # Check that correct files were generated.
-        theme_root = File.dirname(File.realpath(__FILE__)).sub('spec', 'my_theme')
+        theme_root = File.dirname(File.realpath(__FILE__)).sub('integration', 'my_theme')
         expect(File).to exist "#{theme_root}/assets/css/site.css"
         expect(File).to exist "#{theme_root}/assets/fonts/.keep"
         expect(File).to exist "#{theme_root}/assets/images/.keep"
@@ -57,7 +57,7 @@ RSpec.describe LiveEditor::Cli::Main do
         output = capture(:stdout) { subject.new('My Theme') }
 
         # Check that correct files were generated.
-        theme_root = File.dirname(File.realpath(__FILE__)).sub('spec', 'my_theme')
+        theme_root = File.dirname(File.realpath(__FILE__)).sub('integration', 'my_theme')
         expect(File).to exist "#{theme_root}/assets/css/site.css"
         expect(File).to exist "#{theme_root}/assets/fonts/.keep"
         expect(File).to exist "#{theme_root}/assets/images/.keep"
