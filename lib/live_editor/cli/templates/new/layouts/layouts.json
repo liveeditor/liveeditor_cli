@@ -6,6 +6,7 @@
       "regions": [
         {
           "title": "Main",
+          "var_name": "main",
           "description": ""
         }
       ]
