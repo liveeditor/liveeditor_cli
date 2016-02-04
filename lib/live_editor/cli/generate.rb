@@ -13,8 +13,8 @@ module LiveEditor
         File.dirname(__FILE__) + '/templates'
       end
 
-      desc 'content_template TITLE', 'Generate files needed for a new content template'
-      def content_template(title)
+      desc 'content_template TITLE [BLOCKS]', 'Generate files needed for a new content template'
+      def content_template(title, *blocks)
         content_templates_folder = Dir.pwd + '/content_templates'
         Dir.mkdir(content_templates_folder) unless File.exist?(content_templates_folder)
 
@@ -37,9 +37,14 @@ module LiveEditor
 
           content_template_config['content_templates'] << {
             title: title_naming[:title],
+            description: '',
+            var_name: title_naming[:var_name],
             blocks: [],
             displays: [
-              { title: 'Default' }
+              {
+                title: 'Default',
+                description: ''
+              }
             ]
           }
 
@@ -50,20 +55,41 @@ module LiveEditor
         # If we don't yet have a content_templates.json file, create it and add
         # the new content template to it.
         else
-          new_content_template = {
-            content_templates: [
+          content_template_config = {
+            'content_templates' => [
               title: title_naming[:title],
+              description: '',
+              var_name: title_naming[:var_name],
               blocks: [],
               displays: [
-                { title: 'Default' }
+                {
+                  title: 'Default',
+                  description: ''
+                }
               ]
             ]
           }
+        end
 
-          File.open(content_template_config_loc, 'w+') do |f|
-            f.write(JSON.pretty_generate(new_content_template))
-            f.write("\n")
-          end
+        # If there are any blocks defined, add them to the config.
+        blocks.each do |block|
+          values = block.split(':')
+          var_name = values.first
+          type = values.size == 2 ? values.last : 'text'
+          title_naming = LiveEditor::Cli::naming_for(var_name)
+
+          content_template_config['content_templates'].last[:blocks] << {
+            title: title_naming[:title],
+            description: '',
+            type: type,
+            var_name: title_naming[:var_name]
+          }
+        end
+
+        # Write the new content_templates.json file to disk.
+        File.open(content_template_config_loc, 'w+') do |f|
+          f.write(JSON.pretty_generate(content_template_config))
+          f.write("\n")
         end
 
         # Create new subfolder.

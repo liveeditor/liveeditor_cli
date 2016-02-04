@@ -50,28 +50,52 @@ RSpec.describe LiveEditor::Cli::Generate do
             expect(content_template_config['content_templates'].first['title']).to eql 'My Content Template'
           end
 
-          it 'creates a new my_content_template_display.liquid file' do
+          it 'creates a new default_display.liquid file' do
             output = capture(:stdout) { subject.content_template('My Content Template') }
             expect(File).to exist(theme_root + '/content_templates/my_content_template/default_display.liquid')
           end
         end
 
         context 'with underscored TITLE' do
-          it "echoes new layout's TITLE" do
+          it "echoes new content template's TITLE" do
             output = capture(:stdout) { subject.content_template('my_content_template') }
             expect(output).to match /Creating a new content template titled "My Content Template".../
           end
 
-          it 'adds the new theme entry into layouts.json' do
+          it 'adds the new theme entry into content_templates.json' do
             output = capture(:stdout) { subject.content_template('my_content_template') }
-            layout_config = JSON.parse(File.read(theme_root + '/content_templates/content_templates.json'))
+            content_template_config = JSON.parse(File.read(theme_root + '/content_templates/content_templates.json'))
 
-            expect(layout_config['content_templates'].first['title']).to eql 'My Content Template'
+            expect(content_template_config['content_templates'].first['title']).to eql 'My Content Template'
           end
 
-          it 'creates a new my_layout.liquid file' do
+          it 'creates a new default_display.liquid file' do
             output = capture(:stdout) { subject.content_template('my_content_template') }
             expect(File).to exist(theme_root + '/content_templates/my_content_template/default_display.liquid')
+          end
+        end
+
+        context 'with blocks as arguments' do
+          it 'adds blocks to content_templates.json' do
+            output = capture(:stdout) { subject.content_template('my_content_template', 'title', 'photo:image', 'map:google_map') }
+            content_template_config = JSON.parse(File.read(theme_root + '/content_templates/content_templates.json'))
+            new_blocks = content_template_config['content_templates'].first['blocks']
+
+            # No type provided defaults to text.
+            expect(new_blocks[0]['title']).to eql 'Title'
+            expect(new_blocks[0]['description']).to eql ''
+            expect(new_blocks[0]['var_name']).to eql 'title'
+            expect(new_blocks[0]['type']).to eql 'text'
+
+            expect(new_blocks[1]['title']).to eql 'Photo'
+            expect(new_blocks[1]['description']).to eql ''
+            expect(new_blocks[1]['var_name']).to eql 'photo'
+            expect(new_blocks[1]['type']).to eql 'image'
+
+            expect(new_blocks[2]['title']).to eql 'Map'
+            expect(new_blocks[2]['description']).to eql ''
+            expect(new_blocks[2]['var_name']).to eql 'map'
+            expect(new_blocks[2]['type']).to eql 'google_map'
           end
         end
       end
