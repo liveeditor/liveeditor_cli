@@ -167,4 +167,74 @@ RSpec.describe LiveEditor::Cli::Generate do
       end
     end # within valid theme
   end # layout
+
+  describe 'navigation' do
+    # Clean up generated my_theme directory.
+    after do
+      FileUtils.rm_rf(theme_root)
+    end
+
+    context 'within valid theme' do
+      let(:folder)     { 'my_theme_' + (Time.now.to_f * 1000).to_i.to_s }
+      let(:theme_root) { File.dirname(File.realpath(__FILE__)).sub('integration', folder) }
+
+      before do
+        Dir.mkdir(theme_root)
+        Dir.mkdir(theme_root + '/navigation')
+
+        File.open(theme_root + '/navigation/navigation.json', 'w+') do |f|
+          nav_config = { navigation: [] }
+          f.write(JSON.generate(nav_config))
+        end
+
+        FileUtils.cd theme_root
+      end
+
+      after do
+        FileUtils.cd '..'
+      end
+
+      context 'with titleized TITLE' do
+        it "echoes new navigation menu's TITLE" do
+          output = capture(:stdout) { subject.navigation('My Nav') }
+          expect(output).to match /Creating a new navigation menu titled "My Nav".../
+        end
+
+        it 'adds the new menu entry into navigation.json' do
+          output = capture(:stdout) { subject.navigation('My Nav') }
+          nav_config = JSON.parse(File.read(theme_root + '/navigation/navigation.json'))
+
+          expect(nav_config['navigation'].first['title']).to eql 'My Nav'
+          expect(nav_config['navigation'].first['var_name']).to eql 'my_nav'
+          expect(nav_config['navigation'].first['description']).to eql ''
+        end
+
+        it 'creates a new my_nav_navigation.liquid file' do
+          output = capture(:stdout) { subject.navigation('My Nav') }
+          expect(File).to exist(theme_root + '/navigation/my_nav_navigation.liquid')
+        end
+      end
+
+      context 'with underscored TITLE' do
+        it "echoes new menu's TITLE" do
+          output = capture(:stdout) { subject.navigation('my_nav') }
+          expect(output).to match /Creating a new navigation menu titled "My Nav".../
+        end
+
+        it 'adds the new menu entry into navigation.json' do
+          output = capture(:stdout) { subject.navigation('my_nav') }
+          nav_config = JSON.parse(File.read(theme_root + '/navigation/navigation.json'))
+
+          expect(nav_config['navigation'].first['title']).to eql 'My Nav'
+          expect(nav_config['navigation'].first['var_name']).to eql 'my_nav'
+          expect(nav_config['navigation'].first['description']).to eql ''
+        end
+
+        it 'creates a new my_nav_navigation.liquid file' do
+          output = capture(:stdout) { subject.navigation('my_nav') }
+          expect(File).to exist(theme_root + '/navigation/my_nav_navigation.liquid')
+        end
+      end
+    end # within valid theme
+  end # navigation
 end

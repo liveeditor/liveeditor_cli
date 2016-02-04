@@ -106,7 +106,7 @@ module LiveEditor
         say "Creating a new Live Editor layout titled \"#{title_naming[:title]}\"..."
         say '      append  layouts/layouts.json'
 
-        # If the layouts config file is already there, append new layout to it.
+        # If the layout's config file is already there, append new layout to it.
         if File.exist?(layout_config_loc)
           begin
             layout_config = JSON.parse(File.read(layout_config_loc))
@@ -142,6 +142,56 @@ module LiveEditor
 
         # Create new Liquid file.
         copy_file('generate/layout.liquid', "layouts/#{title_naming[:var_name]}_layout.liquid")
+      end
+
+      desc 'navigation TITLE', 'Generate files needed for a new navigation menu'
+      def navigation(title)
+        nav_config_loc = Dir.pwd + '/navigation/navigation.json'
+        title_naming = LiveEditor::Cli::naming_for(title)
+
+        say "Creating a new navigation menu titled \"#{title_naming[:title]}\"..."
+        say '      append  navigation/navigation.json'
+
+        # If the navigation's config file is already there, append new menu to it.
+        if File.exist?(nav_config_loc)
+          begin
+            nav_config = JSON.parse(File.read(nav_config_loc))
+          rescue Exception => e
+            say 'The file at navigation/navigation.json does not have valid JSON markup.', :red
+            exit
+          end
+
+          nav_config['navigation'] << {
+            title: title_naming[:title],
+            var_name: title_naming[:var_name],
+            description: ''
+          }
+
+          File.open(nav_config_loc, 'w+') do |f|
+            f.write(JSON.pretty_generate(nav_config))
+            f.write("\n")
+          end
+        # If we don't yet have a navigation.json file, create it and add the new
+        # menu to it.
+        else
+          new_nav = {
+            navigation: [
+              {
+                title: title_naming[:title],
+                var_name: title_naming[:var_name],
+                description: ''
+              }
+            ]
+          }
+
+          File.open(nav_config_loc, 'w+') do |f|
+            f.write(JSON.pretty_generate(new_nav))
+            f.write("\n")
+          end
+        end
+
+        # Create new Liquid file.
+        copy_file('generate/navigation.liquid', "navigation/#{title_naming[:var_name]}_navigation.liquid")
       end
     end
   end
