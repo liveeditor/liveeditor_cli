@@ -7,9 +7,9 @@ Gem::Specification.new do |gem|
   gem.version       = LiveEditor::Cli::VERSION
   gem.authors       = ['Chris Peters']
   gem.email         = ['webmaster@liveeditorcms.com']
-  gem.description   = 'Command line tool for previewing your theme and syncing it to your Live Editor account.'
+  gem.description   = 'Command line interface for building, previewing, and syncing your Live Editor theme.'
   gem.summary       = 'Spin up a development server to preview your Live Editor theme as you develop it. Push your theme files to your Live Editor account. Perform data migrations after changing the structure of your theme.'
-  gem.homepage      = 'http://www.liveeditorcms.com/support/designers/themes/development-environment/'
+  gem.homepage      = 'http://www.liveeditorcms.com/support/designers/themes/cli-reference/'
   gem.license       = 'MIT'
 
   gem.test_files    = gem.files.grep(%r{^(test|spec|features)/})
