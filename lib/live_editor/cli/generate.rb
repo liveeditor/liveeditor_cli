@@ -15,7 +15,10 @@ module LiveEditor
 
       desc 'content_template TITLE [BLOCKS]', 'Generate files needed for a new content template'
       def content_template(title, *blocks)
-        content_templates_folder = Dir.pwd + '/content_templates'
+        # Fail if we're not within another theme folder structure.
+        theme_root = LiveEditor::Cli::theme_root_dir! || return
+
+        content_templates_folder = theme_root + '/content_templates'
         Dir.mkdir(content_templates_folder) unless File.exist?(content_templates_folder)
 
         content_template_config_loc = content_templates_folder + '/content_templates.json'
@@ -101,11 +104,7 @@ module LiveEditor
       desc 'layout TITLE', 'Generate files needed for a new layout'
       def layout(title)
         # Fail if we're not within another theme folder structure.
-        theme_root = LiveEditor::Cli::theme_root_dir
-        unless theme_root
-          say "ERROR: Must be within an existing Live Editor theme's folder to run this command."
-          return
-        end
+        theme_root = LiveEditor::Cli::theme_root_dir! || return
 
         layout_config_loc = theme_root + '/layouts/layouts.json'
         title_naming = LiveEditor::Cli::naming_for(title)
@@ -153,7 +152,10 @@ module LiveEditor
 
       desc 'navigation TITLE', 'Generate files needed for a new navigation menu'
       def navigation(title)
-        nav_config_loc = Dir.pwd + '/navigation/navigation.json'
+        # Fail if we're not within another theme folder structure.
+        theme_root = LiveEditor::Cli::theme_root_dir! || return
+
+        nav_config_loc = theme_root + '/navigation/navigation.json'
         title_naming = LiveEditor::Cli::naming_for(title)
 
         say "Creating a new navigation menu titled \"#{title_naming[:title]}\"..."

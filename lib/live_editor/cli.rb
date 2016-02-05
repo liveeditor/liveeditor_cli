@@ -32,6 +32,15 @@ module LiveEditor
 
       current_dir.size > 0 ? current_dir : nil
     end
+
+    # Displays an error message and returns `false` if a process is not being
+    # run within a theme's directory (or any subdirectories of the theme).
+    # Otherwise, returns `true`.
+    def self.theme_root_dir!
+      theme_root = theme_root_dir
+      puts("ERROR: Must be within an existing Live Editor theme's folder to run this command.") unless theme_root
+      theme_root
+    end
   end
 end
 

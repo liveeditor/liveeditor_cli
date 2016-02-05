@@ -2,18 +2,19 @@ require 'spec_helper'
 
 RSpec.describe LiveEditor::Cli::Generate do
   describe 'content_template' do
-    # Clean up generated my_theme directory.
-    after do
-      FileUtils.rm_rf(theme_root)
-    end
-
     context 'within valid theme' do
+      # Clean up generated my_theme directory.
+      after do
+        FileUtils.rm_rf(theme_root)
+      end
+
       let(:folder)     { 'my_theme_' + (Time.now.to_f * 1000).to_i.to_s }
       let(:theme_root) { File.dirname(File.realpath(__FILE__)).sub('integration', folder) }
 
       before do
         Dir.mkdir(theme_root)
         FileUtils.cd theme_root
+        File.open(theme_root + '/theme.json', 'w+') { |f| }
       end
 
       after do
@@ -100,6 +101,14 @@ RSpec.describe LiveEditor::Cli::Generate do
         end
       end
     end # within valid theme
+
+    context 'outside of theme folder' do
+      it 'returns an error and does not generate any files' do
+        output = capture(:stdout) { subject.content_template('my_content_template') }
+        expect(output).to eql "ERROR: Must be within an existing Live Editor theme's folder to run this command."
+        expect(File).to_not exist(FileUtils.pwd + '/content_templates/content_templates.json')
+      end
+    end
   end # content_template
 
   describe 'layout' do
@@ -174,17 +183,18 @@ RSpec.describe LiveEditor::Cli::Generate do
   end # layout
 
   describe 'navigation' do
-    # Clean up generated my_theme directory.
-    after do
-      FileUtils.rm_rf(theme_root)
-    end
-
     context 'within valid theme' do
+      # Clean up generated my_theme directory.
+      after do
+        FileUtils.rm_rf(theme_root)
+      end
+
       let(:folder)     { 'my_theme_' + (Time.now.to_f * 1000).to_i.to_s }
       let(:theme_root) { File.dirname(File.realpath(__FILE__)).sub('integration', folder) }
 
       before do
         Dir.mkdir(theme_root)
+        File.open(theme_root + '/theme.json', 'w+') { |f| }
         Dir.mkdir(theme_root + '/navigation')
 
         File.open(theme_root + '/navigation/navigation.json', 'w+') do |f|
@@ -241,5 +251,13 @@ RSpec.describe LiveEditor::Cli::Generate do
         end
       end
     end # within valid theme
+
+    context 'outside of theme folder' do
+      it 'returns an error and does not generate any files' do
+        output = capture(:stdout) { subject.navigation('my_nav') }
+        expect(output).to eql "ERROR: Must be within an existing Live Editor theme's folder to run this command."
+        expect(File).to_not exist(FileUtils.pwd + '/navigation/my_nav_navigation.liquid')
+      end
+    end
   end # navigation
 end
