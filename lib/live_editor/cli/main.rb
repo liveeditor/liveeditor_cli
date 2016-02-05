@@ -29,6 +29,13 @@ module LiveEditor
 
       desc 'new TITLE', 'Create a new skeleton theme'
       def new(title)
+        # Fail if we're already within another theme folder structure.
+        puts LiveEditor::Cli::theme_root_dir
+        if LiveEditor::Cli::theme_root_dir
+          say 'ERROR: Cannot create a new theme within the folder of another theme.'
+          return
+        end
+
         # Figure out values for title, folder name, and path.
         title_naming = LiveEditor::Cli::naming_for(title)
         @title = title_naming[:title]
