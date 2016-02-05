@@ -100,7 +100,14 @@ module LiveEditor
 
       desc 'layout TITLE', 'Generate files needed for a new layout'
       def layout(title)
-        layout_config_loc = Dir.pwd + '/layouts/layouts.json'
+        # Fail if we're not within another theme folder structure.
+        theme_root = LiveEditor::Cli::theme_root_dir
+        unless theme_root
+          say "ERROR: Must be within an existing Live Editor theme's folder to run this command."
+          return
+        end
+
+        layout_config_loc = theme_root + '/layouts/layouts.json'
         title_naming = LiveEditor::Cli::naming_for(title)
 
         say "Creating a new Live Editor layout titled \"#{title_naming[:title]}\"..."
