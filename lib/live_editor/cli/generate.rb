@@ -32,7 +32,7 @@ module LiveEditor
           rescue Exception => e
             say 'The file at content_templates/content_templates.json does not contain valid JSON markup.',
                 :red
-            exit
+            return
           end
 
           content_template_config['content_templates'] << {
@@ -112,7 +112,7 @@ module LiveEditor
             layout_config = JSON.parse(File.read(layout_config_loc))
           rescue Exception => e
             say 'The file at layouts/layout.json does not have valid JSON markup.', :red
-            exit
+            return
           end
 
           layout_config['layouts'] << {
@@ -158,7 +158,7 @@ module LiveEditor
             nav_config = JSON.parse(File.read(nav_config_loc))
           rescue Exception => e
             say 'The file at navigation/navigation.json does not have valid JSON markup.', :red
-            exit
+            return
           end
 
           nav_config['navigation'] << {
