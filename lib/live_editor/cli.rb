@@ -1,3 +1,5 @@
+require 'live_editor/cli/main'
+
 module LiveEditor
   module Cli
     # Returns a hash with 2 values for the `title`:
@@ -43,6 +45,3 @@ module LiveEditor
     end
   end
 end
-
-require_relative 'cli/main'
-require_relative 'cli/generate'
