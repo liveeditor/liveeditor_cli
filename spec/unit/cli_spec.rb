@@ -9,19 +9,9 @@ RSpec.describe LiveEditor::Cli do
     end
 
     context 'within theme root folder' do
-      let(:folder)     { 'my_theme_' + (Time.now.to_f * 1000).to_i.to_s }
-      let(:theme_root) { File.dirname(File.realpath(__FILE__)).sub('unit', folder) }
-
-      before do
-        Dir.mkdir(theme_root)
-        File.open(theme_root + '/theme.json', 'w+') { |f| }
-        FileUtils.cd theme_root
-      end
-
-      after do
-        FileUtils.cd('..')
-        FileUtils.rm_rf(theme_root)
-      end
+      include_context 'basic theme'
+      before { FileUtils.cd(theme_root) }
+      after { FileUtils.cd('..') }
 
       it 'returns the current folder' do
         expect(LiveEditor::Cli::theme_root_dir).to eql theme_root
@@ -34,9 +24,7 @@ RSpec.describe LiveEditor::Cli do
           FileUtils.cd(subfolder)
         end
 
-        after do
-          FileUtils.cd('..')
-        end
+        after { FileUtils.cd('..') }
 
         it 'returns the root folder' do
           expect(LiveEditor::Cli::theme_root_dir).to eql theme_root

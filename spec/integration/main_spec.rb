@@ -88,22 +88,14 @@ RSpec.describe LiveEditor::Cli::Main do
     end
 
     context 'within existing theme' do
-      it 'displays an error and does not generate a new theme' do
-        # Create existing theme and change directories into it.
-        folder = 'my_theme_' + (Time.now.to_f * 1000).to_i.to_s
-        theme_root = File.dirname(File.realpath(__FILE__)).sub('integration', folder)
-        Dir.mkdir(theme_root)
-        File.open(theme_root + '/theme.json', 'w+') { |f| }
-        FileUtils.cd theme_root
+      include_context 'basic theme'
+      before { FileUtils.cd(theme_root) }
+      after { FileUtils.cd('..') }
 
-        # Run command.
+      it 'displays an error and does not generate a new theme' do
         output = capture(:stdout) { subject.new('My Theme') }
         expect(output).to match /ERROR: Cannot create a new theme within the folder of another theme./
         expect(File).to_not exist "#{theme_root}/my_theme/assets/css/site.css"
-
-        # Clean up.
-        FileUtils.cd '..'
-        FileUtils.rm_rf(theme_root)
       end
     end
   end # new

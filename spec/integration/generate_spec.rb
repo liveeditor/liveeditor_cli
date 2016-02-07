@@ -3,23 +3,9 @@ require 'spec_helper'
 RSpec.describe LiveEditor::Cli::Generate do
   describe 'content_template' do
     context 'within valid theme' do
-      # Clean up generated my_theme directory.
-      after do
-        FileUtils.rm_rf(theme_root)
-      end
-
-      let(:folder)     { 'my_theme_' + (Time.now.to_f * 1000).to_i.to_s }
-      let(:theme_root) { File.dirname(File.realpath(__FILE__)).sub('integration', folder) }
-
-      before do
-        Dir.mkdir(theme_root)
-        FileUtils.cd theme_root
-        File.open(theme_root + '/theme.json', 'w+') { |f| }
-      end
-
-      after do
-        FileUtils.cd '..'
-      end
+      include_context 'basic theme'
+      before { FileUtils.cd(theme_root) }
+      after { FileUtils.cd('..') }
 
       context 'with no content_templates folder' do
         it 'creates a content_templates folder' do
@@ -113,12 +99,9 @@ RSpec.describe LiveEditor::Cli::Generate do
 
   describe 'layout' do
     context 'within valid theme' do
-      let(:folder)     { 'my_theme_' + (Time.now.to_f * 1000).to_i.to_s }
-      let(:theme_root) { File.dirname(File.realpath(__FILE__)).sub('integration', folder) }
+      include_context 'basic theme'
 
       before do
-        Dir.mkdir(theme_root)
-        File.open(theme_root + '/theme.json', 'w+') { |f| }
         Dir.mkdir(theme_root + '/layouts')
 
         File.open(theme_root + '/layouts/layouts.json', 'w+') do |f|
@@ -129,10 +112,7 @@ RSpec.describe LiveEditor::Cli::Generate do
         FileUtils.cd theme_root
       end
 
-      after do
-        FileUtils.cd '..'
-        FileUtils.rm_rf(theme_root)
-      end
+      after { FileUtils.cd('..') }
 
       context 'with titleized TITLE' do
         it "echoes new layout's TITLE" do
@@ -184,17 +164,9 @@ RSpec.describe LiveEditor::Cli::Generate do
 
   describe 'navigation' do
     context 'within valid theme' do
-      # Clean up generated my_theme directory.
-      after do
-        FileUtils.rm_rf(theme_root)
-      end
-
-      let(:folder)     { 'my_theme_' + (Time.now.to_f * 1000).to_i.to_s }
-      let(:theme_root) { File.dirname(File.realpath(__FILE__)).sub('integration', folder) }
+      include_context 'basic theme'
 
       before do
-        Dir.mkdir(theme_root)
-        File.open(theme_root + '/theme.json', 'w+') { |f| }
         Dir.mkdir(theme_root + '/navigation')
 
         File.open(theme_root + '/navigation/navigation.json', 'w+') do |f|
@@ -205,9 +177,7 @@ RSpec.describe LiveEditor::Cli::Generate do
         FileUtils.cd theme_root
       end
 
-      after do
-        FileUtils.cd '..'
-      end
+      after { FileUtils.cd('..') }
 
       context 'with titleized TITLE' do
         it "echoes new navigation menu's TITLE" do
