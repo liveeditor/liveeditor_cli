@@ -1,10 +1,19 @@
 require 'spec_helper'
 
 RSpec.describe LiveEditor::Cli do
-  describe :theme_root_dir do
+  shared_examples 'theme_root_dir' do |method, sends_output|
     context 'outside of any theme folders' do
       it 'returns nil' do
-        expect(LiveEditor::Cli::theme_root_dir).to be_nil
+        # No worries: the expect still runs properly when inside of the
+        # `capture` block.
+        capture(:stdout) { expect(LiveEditor::Cli::send(method)).to be_nil }
+      end
+
+      if sends_output
+        it 'displays an error message' do
+          output = capture(:stdout) { LiveEditor::Cli::send(method) }
+          expect(output).to eql "ERROR: Must be within an existing Live Editor theme's folder to run this command."
+        end
       end
     end
 
@@ -14,7 +23,7 @@ RSpec.describe LiveEditor::Cli do
       after { FileUtils.cd('..') }
 
       it 'returns the current folder' do
-        expect(LiveEditor::Cli::theme_root_dir).to eql theme_root
+        expect(LiveEditor::Cli::send(method)).to eql theme_root
       end
 
       context 'within subfolder underneath theme root' do
@@ -27,10 +36,18 @@ RSpec.describe LiveEditor::Cli do
         after { FileUtils.cd('..') }
 
         it 'returns the root folder' do
-          expect(LiveEditor::Cli::theme_root_dir).to eql theme_root
+          expect(LiveEditor::Cli::send(method)).to eql theme_root
         end
       end
     end
+  end
+
+  describe '.theme_root_dir' do
+    it_behaves_like('theme_root_dir', :theme_root_dir, false)
+  end
+
+  describe '.theme_root_dir!' do
+    it_behaves_like('theme_root_dir', :theme_root_dir!, true)
   end
 
   describe :naming_for do
