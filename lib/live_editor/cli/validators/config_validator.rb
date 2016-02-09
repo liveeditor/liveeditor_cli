@@ -29,26 +29,16 @@ module LiveEditor
               return false
             end
 
-            # Validate presence of `api_key` attribute.
-            unless config['api_key']
-              @errors << {
-                type: :error,
-                message: 'The file at `/config.json` must contain an `api_key` attribute.'
-              }
-            end
-            # Validate presence of `secret_key` attribute.
-            unless config['secret_key']
-              @errors << {
-                type: :error,
-                message: 'The file at `/config.json` must contain a `secret_key` attribute.'
-              }
-            end
-            # Validate presence of `admin_domain` attribute.
-            unless config['admin_domain']
-              @errors << {
-                type: :error,
-                message: 'The file at `/config.json` must contain an `admin_domain` attribute.'
-              }
+            # Validate presence of `api_key`, `secret_key`, and `admin_domain` attributes.
+            ['api_key', 'secret_key', 'admin_domain'].each do |key|
+              unless config[key]
+                a_an = key.start_with?('a') ? 'an' : 'a'
+
+                @errors << {
+                  type: :error,
+                  message: "The file at `/config.json` must contain #{a_an} `#{key}` attribute."
+                }
+              end
             end
           # No config.json.
           else

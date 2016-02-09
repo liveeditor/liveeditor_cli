@@ -4,6 +4,7 @@ require 'live_editor/cli/generators'
 require 'live_editor/cli/generate'
 require 'live_editor/cli/validators/theme_validator'
 require 'live_editor/cli/validators/config_validator'
+require 'live_editor/cli/validators/config_sample_validator'
 require 'active_support/core_ext/string'
 
 module LiveEditor
