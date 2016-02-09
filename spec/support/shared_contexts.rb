@@ -6,10 +6,20 @@ shared_context 'basic theme' do
 
   before do
     Dir.mkdir(theme_root)
-    FileUtils.touch(theme_root + '/theme.json')
+
+    File.open(theme_root + '/theme.json', 'w+') do |f|
+      f.write JSON.generate({
+        title: 'My Theme'
+      })
+    end
   end
 
   after do
     FileUtils.rm_rf(theme_root)
   end
+end
+
+shared_context 'within theme root' do
+  before { FileUtils.cd(theme_root) }
+  after { FileUtils.cd('..') }
 end
