@@ -34,9 +34,7 @@ RSpec.describe LiveEditor::Cli::Validators::ThemeValidator do
 
       before do
         File.open(theme_root + '/theme.json', 'w') do |f|
-            f.write JSON.generate({
-            foo: 'bar'
-          })
+          f.write JSON.generate({ foo: 'bar' })
         end
       end
 
@@ -86,9 +84,7 @@ RSpec.describe LiveEditor::Cli::Validators::ThemeValidator do
 
       before do
         File.open(theme_root + '/theme.json', 'w') do |f|
-            f.write JSON.generate({
-            foo: 'bar'
-          })
+          f.write JSON.generate({ foo: 'bar' })
         end
       end
 
@@ -104,5 +100,5 @@ RSpec.describe LiveEditor::Cli::Validators::ThemeValidator do
         expect(validator.errors.first[:message]).to eql 'The file at `/theme.json` must contain a `title` attribute.'
       end
     end
-  end
+  end # errors
 end
