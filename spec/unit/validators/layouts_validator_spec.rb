@@ -302,7 +302,7 @@ RSpec.describe LiveEditor::Cli::Validators::LayoutsValidator do
     end
   end # valid?
 
-  describe '.errors' do
+  describe '#errors' do
     context 'with valid minimal layouts.json' do
       include_context 'basic theme'
       include_context 'within theme root'
