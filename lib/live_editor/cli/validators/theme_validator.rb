@@ -30,7 +30,7 @@ module LiveEditor
             end
 
             # Validate presence of `title` attribute.
-            unless theme_config['title']
+            if theme_config['title'].blank?
               @errors << {
                 type: :error,
                 message: 'The file at `/theme.json` must contain a `title` attribute.'

@@ -57,7 +57,7 @@ module LiveEditor
             # Validate each layout's attributes.
             layouts_config['layouts'].each_with_index do |layout_config, index|
               # Title is required.
-              unless layout_config['title'].present?
+              if layout_config['title'].blank?
                 self.errors << {
                   type: :error,
                   message: "The layout in position #{index + 1} within the file at `/layouts/layouts.json` does not have a valid title."
@@ -65,7 +65,7 @@ module LiveEditor
               end
 
               # Unique is optional but must be boolean.
-              if layout_config['unique'] && ![true, false].include?(layout_config['unique'])
+              if layout_config['unique'].present? && ![true, false].include?(layout_config['unique'])
                 self.errors << {
                   type: :error,
                   message: "The layout in position #{index + 1} within the file at `/layouts/layouts.json` does not have a valid value for `unique`."
@@ -96,7 +96,7 @@ module LiveEditor
               elsif layout_config['regions']
                 layout_config['regions'].each_with_index do |region_config, r_index|
                   # Title is required.
-                  unless region_config['title'].present?
+                  if region_config['title'].blank?
                     self.errors << {
                       type: :error,
                       message: "The layout in position #{index + 1}'s region in position #{r_index + 1} must have a `title`."
