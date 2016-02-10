@@ -103,7 +103,7 @@ RSpec.describe LiveEditor::Cli::Validators::ConfigSampleValidator do
     end
   end # valid?
 
-  describe '.errors' do
+  describe '#errors' do
     context 'with valid config.json.sample' do
       include_context 'basic theme'
       include_context 'within theme root'
