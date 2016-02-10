@@ -47,7 +47,7 @@ RSpec.describe LiveEditor::Cli::Validators::ConfigValidator do
       end
     end
 
-    context 'with invalid config.json api_key' do
+    context 'with missing config.json api_key' do
       include_context 'basic theme'
       include_context 'within theme root'
 
@@ -65,7 +65,26 @@ RSpec.describe LiveEditor::Cli::Validators::ConfigValidator do
       end
     end
 
-    context 'with invalid config.json secret_key' do
+    context 'with emoty config.json api_key' do
+      include_context 'basic theme'
+      include_context 'within theme root'
+
+      before do
+        File.open(theme_root + '/config.json', 'w') do |f|
+          f.write JSON.generate({
+            api_key: '',
+            secret_key: '0987654321',
+            admin_domain: 'example.liveeditorapp.com'
+          })
+        end
+      end
+
+      it 'is invalid' do
+        expect(validator.valid?).to eql false
+      end
+    end
+
+    context 'with missing config.json secret_key' do
       include_context 'basic theme'
       include_context 'within theme root'
 
@@ -83,7 +102,26 @@ RSpec.describe LiveEditor::Cli::Validators::ConfigValidator do
       end
     end
 
-    context 'with invalid config.json admin_domain' do
+    context 'with empty config.json secret_key' do
+      include_context 'basic theme'
+      include_context 'within theme root'
+
+      before do
+        File.open(theme_root + '/config.json', 'w') do |f|
+          f.write JSON.generate({
+            api_key: '1234567890',
+            secret_key: '',
+            admin_domain: 'example.liveeditorapp.com'
+          })
+        end
+      end
+
+      it 'is invalid' do
+        expect(validator.valid?).to eql false
+      end
+    end
+
+    context 'with missing config.json admin_domain' do
       include_context 'basic theme'
       include_context 'within theme root'
 
@@ -92,6 +130,25 @@ RSpec.describe LiveEditor::Cli::Validators::ConfigValidator do
           f.write JSON.generate({
             api_key: '1234567890',
             secret_key: '0987654321'
+          })
+        end
+      end
+
+      it 'is invalid' do
+        expect(validator.valid?).to eql false
+      end
+    end
+
+    context 'with empty config.json admin_domain' do
+      include_context 'basic theme'
+      include_context 'within theme root'
+
+      before do
+        File.open(theme_root + '/config.json', 'w') do |f|
+          f.write JSON.generate({
+            api_key: '1234567890',
+            secret_key: '0987654321',
+            admin_domain: ''
           })
         end
       end
@@ -144,7 +201,7 @@ RSpec.describe LiveEditor::Cli::Validators::ConfigValidator do
       end
     end
 
-    context 'with invalid config.json api_key' do
+    context 'with missing config.json api_key' do
       include_context 'basic theme'
       include_context 'within theme root'
 
@@ -168,7 +225,32 @@ RSpec.describe LiveEditor::Cli::Validators::ConfigValidator do
       end
     end
 
-    context 'with invalid config.json secret_key' do
+    context 'with empty config.json api_key' do
+      include_context 'basic theme'
+      include_context 'within theme root'
+
+      before do
+        File.open(theme_root + '/config.json', 'w') do |f|
+          f.write JSON.generate({
+            api_key: '',
+            secret_key: '0987654321',
+            admin_domain: 'example.liveeditorapp.com'
+          })
+        end
+      end
+
+      it 'returns an array with an error' do
+        validator.valid?
+        expect(validator.errors.first[:type]).to eql :error
+      end
+
+      it 'returns an array with an error message' do
+        validator.valid?
+        expect(validator.errors.first[:message]).to eql 'The file at `/config.json` must contain an `api_key` attribute.'
+      end
+    end
+
+    context 'with missing config.json secret_key' do
       include_context 'basic theme'
       include_context 'within theme root'
 
@@ -192,7 +274,32 @@ RSpec.describe LiveEditor::Cli::Validators::ConfigValidator do
       end
     end
 
-    context 'with invalid config.json admin_domain' do
+    context 'with empty config.json secret_key' do
+      include_context 'basic theme'
+      include_context 'within theme root'
+
+      before do
+        File.open(theme_root + '/config.json', 'w') do |f|
+          f.write JSON.generate({
+            api_key: '1234567890',
+            secret_key: '',
+            admin_domain: 'example.liveeditorapp.com'
+          })
+        end
+      end
+
+      it 'returns an array with an error' do
+        validator.valid?
+        expect(validator.errors.first[:type]).to eql :error
+      end
+
+      it 'returns an array with an error message' do
+        validator.valid?
+        expect(validator.errors.first[:message]).to eql 'The file at `/config.json` must contain a `secret_key` attribute.'
+      end
+    end
+
+    context 'with missing config.json admin_domain' do
       include_context 'basic theme'
       include_context 'within theme root'
 
@@ -201,6 +308,31 @@ RSpec.describe LiveEditor::Cli::Validators::ConfigValidator do
           f.write JSON.generate({
             api_key: '1234567890',
             secret_key: '0987654321'
+          })
+        end
+      end
+
+      it 'returns an array with an error' do
+        validator.valid?
+        expect(validator.errors.first[:type]).to eql :error
+      end
+
+      it 'returns an array with an error message' do
+        validator.valid?
+        expect(validator.errors.first[:message]).to eql 'The file at `/config.json` must contain an `admin_domain` attribute.'
+      end
+    end
+
+    context 'with empoty config.json admin_domain' do
+      include_context 'basic theme'
+      include_context 'within theme root'
+
+      before do
+        File.open(theme_root + '/config.json', 'w') do |f|
+          f.write JSON.generate({
+            api_key: '1234567890',
+            secret_key: '0987654321',
+            admin_domain: ''
           })
         end
       end

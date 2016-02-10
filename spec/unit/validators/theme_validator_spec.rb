@@ -28,7 +28,7 @@ RSpec.describe LiveEditor::Cli::Validators::ThemeValidator do
       end
     end
 
-    context 'with invalid theme.json title' do
+    context 'with missing theme.json title' do
       include_context 'basic theme'
       include_context 'within theme root'
 
@@ -42,9 +42,24 @@ RSpec.describe LiveEditor::Cli::Validators::ThemeValidator do
         expect(validator.valid?).to eql false
       end
     end
+
+    context 'with empty theme.json title' do
+      include_context 'basic theme'
+      include_context 'within theme root'
+
+      before do
+        File.open(theme_root + '/theme.json', 'w') do |f|
+          f.write JSON.generate({ title: '' })
+        end
+      end
+
+      it 'is invalid' do
+        expect(validator.valid?).to eql false
+      end
+    end
   end # valid?
 
-  describe '.errors' do
+  describe '#errors' do
     context 'with valid theme.json' do
       include_context 'basic theme'
       include_context 'within theme root'
@@ -76,13 +91,34 @@ RSpec.describe LiveEditor::Cli::Validators::ThemeValidator do
       end
     end
 
-    context 'with invalid theme.json title' do
+    context 'with missing theme.json title' do
       include_context 'basic theme'
       include_context 'within theme root'
 
       before do
         File.open(theme_root + '/theme.json', 'w') do |f|
           f.write JSON.generate({ foo: 'bar' })
+        end
+      end
+
+      it 'returns an array with an error' do
+        validator.valid?
+        expect(validator.errors.first[:type]).to eql :error
+      end
+
+      it 'returns an array with an error message' do
+        validator.valid?
+        expect(validator.errors.first[:message]).to eql 'The file at `/theme.json` must contain a `title` attribute.'
+      end
+    end
+
+    context 'with empty theme.json title' do
+      include_context 'basic theme'
+      include_context 'within theme root'
+
+      before do
+        File.open(theme_root + '/theme.json', 'w') do |f|
+          f.write JSON.generate({ title: '' })
         end
       end
 
