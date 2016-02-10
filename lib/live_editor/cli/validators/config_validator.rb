@@ -31,7 +31,7 @@ module LiveEditor
 
             # Validate presence of `api_key`, `secret_key`, and `admin_domain` attributes.
             ['api_key', 'secret_key', 'admin_domain'].each do |key|
-              unless config[key]
+              if config[key].blank?
                 a_an = key.start_with?('a') ? 'an' : 'a'
 
                 @errors << {
