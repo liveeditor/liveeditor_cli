@@ -34,14 +34,13 @@ RSpec.describe LiveEditor::Cli::Validators::ConfigSampleValidator do
 
     context 'with non-JSON config.json.sample' do
       include_context 'basic theme'
+      include_context 'within theme root'
 
       before do
         File.open(theme_root + '/config.json.sample', 'w') do |f|
           f.write('bananas')
         end
       end
-
-      include_context 'within theme root'
 
       it 'is valid' do
         expect(validator.valid?).to eql true
@@ -50,6 +49,7 @@ RSpec.describe LiveEditor::Cli::Validators::ConfigSampleValidator do
 
     context 'with api_key in config.json.sample' do
       include_context 'basic theme'
+      include_context 'within theme root'
 
       before do
         File.open(theme_root + '/config.json.sample', 'w') do |f|
@@ -59,8 +59,6 @@ RSpec.describe LiveEditor::Cli::Validators::ConfigSampleValidator do
         end
       end
 
-      include_context 'within theme root'
-
       it 'is valid' do
         expect(validator.valid?).to eql true
       end
@@ -68,6 +66,7 @@ RSpec.describe LiveEditor::Cli::Validators::ConfigSampleValidator do
 
     context 'with secret_key in config.json.sample' do
       include_context 'basic theme'
+      include_context 'within theme root'
 
       before do
         File.open(theme_root + '/config.json.sample', 'w') do |f|
@@ -77,8 +76,6 @@ RSpec.describe LiveEditor::Cli::Validators::ConfigSampleValidator do
         end
       end
 
-      include_context 'within theme root'
-
       it 'is valid' do
         expect(validator.valid?).to eql true
       end
@@ -86,6 +83,7 @@ RSpec.describe LiveEditor::Cli::Validators::ConfigSampleValidator do
 
     context 'with admin_domain in config.json.sample' do
       include_context 'basic theme'
+      include_context 'within theme root'
 
       before do
         File.open(theme_root + '/config.json.sample', 'w') do |f|
@@ -94,8 +92,6 @@ RSpec.describe LiveEditor::Cli::Validators::ConfigSampleValidator do
           })
         end
       end
-
-      include_context 'within theme root'
 
       it 'is valid' do
         expect(validator.valid?).to eql true
@@ -126,14 +122,13 @@ RSpec.describe LiveEditor::Cli::Validators::ConfigSampleValidator do
 
     context 'with non-JSON config.json.sample' do
       include_context 'basic theme'
+      include_context 'within theme root'
 
       before do
         File.open(theme_root + '/config.json.sample', 'w') do |f|
           f.write('bananas')
         end
       end
-
-      include_context 'within theme root'
 
       it 'returns an array with a notice' do
         validator.valid?
@@ -148,14 +143,13 @@ RSpec.describe LiveEditor::Cli::Validators::ConfigSampleValidator do
 
     context 'with api_key in config.json.sample' do
       include_context 'basic theme'
+      include_context 'within theme root'
 
       before do
         File.open(theme_root + '/config.json.sample', 'w') do |f|
           f.write JSON.generate({ api_key: '1234567890' })
         end
       end
-
-      include_context 'within theme root'
 
       it 'returns an array with a notice' do
         validator.valid?
@@ -170,14 +164,13 @@ RSpec.describe LiveEditor::Cli::Validators::ConfigSampleValidator do
 
     context 'with secret_key in config.json.sample' do
       include_context 'basic theme'
+      include_context 'within theme root'
 
       before do
         File.open(theme_root + '/config.json.sample', 'w') do |f|
           f.write JSON.generate({ secret_key: '0987654321' })
         end
       end
-
-      include_context 'within theme root'
 
       it 'returns an array with a notice' do
         validator.valid?
@@ -192,14 +185,13 @@ RSpec.describe LiveEditor::Cli::Validators::ConfigSampleValidator do
 
     context 'with admin in config.json.sample' do
       include_context 'basic theme'
+      include_context 'within theme root'
 
       before do
         File.open(theme_root + '/config.json.sample', 'w') do |f|
           f.write JSON.generate({ admin_domain: 'example.liveeditorapp.com' })
         end
       end
-
-      include_context 'within theme root'
 
       it 'returns an array with a notice' do
         validator.valid?

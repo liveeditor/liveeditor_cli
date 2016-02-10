@@ -15,14 +15,13 @@ RSpec.describe LiveEditor::Cli::Validators::ThemeValidator do
 
     context 'with non-JSON theme.json' do
       include_context 'basic theme'
+      include_context 'within theme root'
 
       before do
         File.open(theme_root + '/theme.json', 'w') do |f|
           f.write('bananas')
         end
       end
-
-      include_context 'within theme root'
 
       it 'is invalid' do
         expect(validator.valid?).to eql false
@@ -31,14 +30,13 @@ RSpec.describe LiveEditor::Cli::Validators::ThemeValidator do
 
     context 'with invalid theme.json title' do
       include_context 'basic theme'
+      include_context 'within theme root'
 
       before do
         File.open(theme_root + '/theme.json', 'w') do |f|
           f.write JSON.generate({ foo: 'bar' })
         end
       end
-
-      include_context 'within theme root'
 
       it 'is invalid' do
         expect(validator.valid?).to eql false
@@ -59,14 +57,13 @@ RSpec.describe LiveEditor::Cli::Validators::ThemeValidator do
 
     context 'with non-JSON theme.json' do
       include_context 'basic theme'
+      include_context 'within theme root'
 
       before do
         File.open(theme_root + '/theme.json', 'w') do |f|
           f.write('bananas')
         end
       end
-
-      include_context 'within theme root'
 
       it 'returns an array with an error' do
         validator.valid?
@@ -81,14 +78,13 @@ RSpec.describe LiveEditor::Cli::Validators::ThemeValidator do
 
     context 'with invalid theme.json title' do
       include_context 'basic theme'
+      include_context 'within theme root'
 
       before do
         File.open(theme_root + '/theme.json', 'w') do |f|
           f.write JSON.generate({ foo: 'bar' })
         end
       end
-
-      include_context 'within theme root'
 
       it 'returns an array with an error' do
         validator.valid?

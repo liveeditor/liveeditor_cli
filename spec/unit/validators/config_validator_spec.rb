@@ -34,14 +34,13 @@ RSpec.describe LiveEditor::Cli::Validators::ConfigValidator do
 
     context 'with non-JSON config.json' do
       include_context 'basic theme'
+      include_context 'within theme root'
 
       before do
         File.open(theme_root + '/config.json', 'w') do |f|
           f.write('bananas')
         end
       end
-
-      include_context 'within theme root'
 
       it 'is invalid' do
         expect(validator.valid?).to eql false
@@ -50,6 +49,7 @@ RSpec.describe LiveEditor::Cli::Validators::ConfigValidator do
 
     context 'with invalid config.json api_key' do
       include_context 'basic theme'
+      include_context 'within theme root'
 
       before do
         File.open(theme_root + '/config.json', 'w') do |f|
@@ -60,8 +60,6 @@ RSpec.describe LiveEditor::Cli::Validators::ConfigValidator do
         end
       end
 
-      include_context 'within theme root'
-
       it 'is invalid' do
         expect(validator.valid?).to eql false
       end
@@ -69,6 +67,7 @@ RSpec.describe LiveEditor::Cli::Validators::ConfigValidator do
 
     context 'with invalid config.json secret_key' do
       include_context 'basic theme'
+      include_context 'within theme root'
 
       before do
         File.open(theme_root + '/config.json', 'w') do |f|
@@ -79,8 +78,6 @@ RSpec.describe LiveEditor::Cli::Validators::ConfigValidator do
         end
       end
 
-      include_context 'within theme root'
-
       it 'is invalid' do
         expect(validator.valid?).to eql false
       end
@@ -88,6 +85,7 @@ RSpec.describe LiveEditor::Cli::Validators::ConfigValidator do
 
     context 'with invalid config.json admin_domain' do
       include_context 'basic theme'
+      include_context 'within theme root'
 
       before do
         File.open(theme_root + '/config.json', 'w') do |f|
@@ -97,8 +95,6 @@ RSpec.describe LiveEditor::Cli::Validators::ConfigValidator do
           })
         end
       end
-
-      include_context 'within theme root'
 
       it 'is invalid' do
         expect(validator.valid?).to eql false
@@ -129,14 +125,13 @@ RSpec.describe LiveEditor::Cli::Validators::ConfigValidator do
 
     context 'with non-JSON config.json' do
       include_context 'basic theme'
+      include_context 'within theme root'
 
       before do
         File.open(theme_root + '/config.json', 'w') do |f|
           f.write('bananas')
         end
       end
-
-      include_context 'within theme root'
 
       it 'returns an array with an error' do
         validator.valid?
@@ -151,6 +146,7 @@ RSpec.describe LiveEditor::Cli::Validators::ConfigValidator do
 
     context 'with invalid config.json api_key' do
       include_context 'basic theme'
+      include_context 'within theme root'
 
       before do
         File.open(theme_root + '/config.json', 'w') do |f|
@@ -160,8 +156,6 @@ RSpec.describe LiveEditor::Cli::Validators::ConfigValidator do
           })
         end
       end
-
-      include_context 'within theme root'
 
       it 'returns an array with an error' do
         validator.valid?
@@ -176,6 +170,7 @@ RSpec.describe LiveEditor::Cli::Validators::ConfigValidator do
 
     context 'with invalid config.json secret_key' do
       include_context 'basic theme'
+      include_context 'within theme root'
 
       before do
         File.open(theme_root + '/config.json', 'w') do |f|
@@ -185,8 +180,6 @@ RSpec.describe LiveEditor::Cli::Validators::ConfigValidator do
           })
         end
       end
-
-      include_context 'within theme root'
 
       it 'returns an array with an error' do
         validator.valid?
@@ -201,6 +194,7 @@ RSpec.describe LiveEditor::Cli::Validators::ConfigValidator do
 
     context 'with invalid config.json admin_domain' do
       include_context 'basic theme'
+      include_context 'within theme root'
 
       before do
         File.open(theme_root + '/config.json', 'w') do |f|
@@ -210,8 +204,6 @@ RSpec.describe LiveEditor::Cli::Validators::ConfigValidator do
           })
         end
       end
-
-      include_context 'within theme root'
 
       it 'returns an array with an error' do
         validator.valid?
