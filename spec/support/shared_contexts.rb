@@ -23,3 +23,13 @@ shared_context 'within theme root' do
   before { FileUtils.cd(theme_root) }
   after { FileUtils.cd('..') }
 end
+
+shared_context 'with layouts folder' do
+  before { Dir.mkdir(theme_root + '/layouts') }
+end
+
+shared_context 'with layout Liquid template' do |filename|
+  before do
+    FileUtils.touch(theme_root + '/layouts/' + "#{filename}_layout.liquid")
+  end
+end
