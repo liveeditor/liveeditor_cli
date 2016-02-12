@@ -37,3 +37,7 @@ end
 shared_context 'with content_templates folder' do
   before { Dir.mkdir(theme_root + '/content_templates') }
 end
+
+shared_context 'with navigation folder' do
+  before  { Dir.mkdir(theme_root + '/navigation') }
+end
