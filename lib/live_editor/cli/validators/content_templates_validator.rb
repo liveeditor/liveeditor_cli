@@ -16,7 +16,7 @@ module LiveEditor
         # An array of errors and notices will also be stored in the `errors`
         # attribute after running this method.
         def valid?
-          # Grab location of /layouts folder.
+          # Grab location of /content_templates folder.
           templates_folder_loc = LiveEditor::Cli::theme_root_dir + '/content_templates'
 
           # content_templates folder is optional.
@@ -28,35 +28,33 @@ module LiveEditor
           # content_templates.json is optional too.
           return true unless File.exist?(templates_config_loc)
 
-          if File.exist?(templates_config_loc)
-            # Validate format of content_templates.json.
-            # Returns false on failure because we can't continue further unless this is valid.
-            begin
-              templates_config = JSON.parse(File.read(templates_config_loc))
-            rescue Exception => e
-              self.errors << {
-                type: :error,
-                message: 'The file at `/content_templates/content_templates.json` does not contain valid JSON markup.'
-              }
+          # Validate format of content_templates.json.
+          # Returns false on failure because we can't continue further unless this is valid.
+          begin
+            templates_config = JSON.parse(File.read(templates_config_loc))
+          rescue Exception => e
+            self.errors << {
+              type: :error,
+              message: 'The file at `/content_templates/content_templates.json` does not contain valid JSON markup.'
+            }
 
-              return false
-            end
+            return false
+          end
 
-            # Validate presence of root `content_templates` attribute.
-            # Returns false on failure because we can't continue further unless this is valid.
-            unless templates_config['content_templates'].present? && templates_config['content_templates'].is_a?(Array)
-              self.errors << {
-                type: :error,
-                message: 'The file at `/content_templates/content_templates.json` must contain a root `content_templates` attribute containing an array.'
-              }
+          # Validate presence of root `content_templates` attribute.
+          # Returns false on failure because we can't continue further unless this is valid.
+          unless templates_config['content_templates'].present? && templates_config['content_templates'].is_a?(Array)
+            self.errors << {
+              type: :error,
+              message: 'The file at `/content_templates/content_templates.json` must contain a root `content_templates` attribute containing an array.'
+            }
 
-              return false
-            end
+            return false
+          end
 
-            # Validate each content templates's attributes.
-            templates_config['content_templates'].each_with_index do |template_config, index|
-              validate_content_template(template_config, index, templates_folder_loc)
-            end
+          # Validate each content templates's attributes.
+          templates_config['content_templates'].each_with_index do |template_config, index|
+            validate_content_template(template_config, index, templates_folder_loc)
           end
 
           self.errors.size == 0
