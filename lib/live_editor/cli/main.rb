@@ -6,6 +6,7 @@ require 'live_editor/cli/validators/theme_validator'
 require 'live_editor/cli/validators/config_validator'
 require 'live_editor/cli/validators/config_sample_validator'
 require 'live_editor/cli/validators/layouts_validator'
+require 'live_editor/cli/validators/content_templates_validator'
 require 'active_support/core_ext/string'
 
 module LiveEditor
