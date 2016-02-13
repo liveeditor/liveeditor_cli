@@ -16,7 +16,7 @@ module LiveEditor
 
         desc 'content_template TITLE [BLOCKS]', 'Generate files needed for a new content template'
         def content_template(title, *blocks)
-          # Fail if we're not within another theme folder structure.
+          # Fail if we're not within a theme folder structure.
           theme_root = LiveEditor::Cli::theme_root_dir! || return
 
           content_templates_folder = theme_root + '/content_templates'
