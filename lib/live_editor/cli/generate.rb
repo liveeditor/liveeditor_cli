@@ -19,8 +19,8 @@ module LiveEditor
       desc 'layout', 'Generator for new layouts.'
       subcommand 'layout', LiveEditor::Cli::Generators::Layout
 
-      desc 'layout', 'Generator for new navigation menus.'
-      subcommand 'layout', LiveEditor::Cli::Generators::Navigation
+      desc 'navigation', 'Generator for new navigation menus.'
+      subcommand 'navigation', LiveEditor::Cli::Generators::Navigation
     end
   end
 end
