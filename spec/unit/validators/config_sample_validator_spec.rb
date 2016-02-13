@@ -183,7 +183,7 @@ RSpec.describe LiveEditor::Cli::Validators::ConfigSampleValidator do
       end
     end
 
-    context 'with admin in config.json.sample' do
+    context 'with admin_domain in config.json.sample' do
       include_context 'basic theme'
       include_context 'within theme root'
 
@@ -201,6 +201,22 @@ RSpec.describe LiveEditor::Cli::Validators::ConfigSampleValidator do
       it 'returns an array with a notice message' do
         validator.valid?
         expect(validator.errors.first[:message]).to eql 'It is not recommended to store `admin_domain` in the `/config.sample.json` file.'
+      end
+    end
+
+    context 'with default admin_domain in config.json.sample' do
+      include_context 'basic theme'
+      include_context 'within theme root'
+
+      before do
+        File.open(theme_root + '/config.json.sample', 'w') do |f|
+          f.write JSON.generate({ admin_domain: '.liveeditorapp.com' })
+        end
+      end
+
+      it 'returns an array with no messages' do
+        validator.valid?
+        expect(validator.errors).to eql []
       end
     end
   end # errors

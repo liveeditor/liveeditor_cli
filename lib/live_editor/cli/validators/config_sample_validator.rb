@@ -31,7 +31,7 @@ module LiveEditor
 
             # Validate presence of `api_key`, `secret_key`, and `admin_domain` attributes.
             ['api_key', 'secret_key', 'admin_domain'].each do |key|
-              if sample_config[key].present?
+              if sample_config[key].present? && (key != 'admin_domain' || sample_config[key] != '.liveeditorapp.com')
                 @errors << {
                   type: :notice,
                   message: "It is not recommended to store `#{key}` in the `/config.sample.json` file."
