@@ -41,3 +41,7 @@ end
 shared_context 'with navigation folder' do
   before  { Dir.mkdir(theme_root + '/navigation') }
 end
+
+shared_context 'with assets folder' do
+  before  { Dir.mkdir(theme_root + '/assets') }
+end

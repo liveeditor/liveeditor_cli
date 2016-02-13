@@ -8,6 +8,7 @@ require 'live_editor/cli/validators/config_sample_validator'
 require 'live_editor/cli/validators/layouts_validator'
 require 'live_editor/cli/validators/content_templates_validator'
 require 'live_editor/cli/validators/navigation_validator'
+require 'live_editor/cli/validators/assets_validator'
 require 'active_support/core_ext/string'
 
 module LiveEditor
