@@ -21,7 +21,7 @@ module LiveEditor
             begin
               config = JSON.parse(File.read(config_loc))
             rescue Exception => e
-              @errors << {
+              self.errors << {
                 type: :error,
                 message: 'The file at `/config.json` does not contain valid JSON markup.'
               }
@@ -34,7 +34,7 @@ module LiveEditor
               if config[key].blank?
                 a_an = key.start_with?('a') ? 'an' : 'a'
 
-                @errors << {
+                self.errors << {
                   type: :error,
                   message: "The file at `/config.json` must contain #{a_an} `#{key}` attribute."
                 }
@@ -42,13 +42,13 @@ module LiveEditor
             end
           # No config.json.
           else
-            @errors << {
-              type: :notice,
-              messag: '`/config.json` has not yet been created.'
+            self.errors << {
+              type: :warning,
+              message: '`/config.json` has not yet been created.'
             }
           end
 
-          @errors.select { |error| error[:type] == :error }.size == 0
+          self.errors.select { |error| error[:type] == :error }.size == 0
         end
       end
     end
