@@ -132,7 +132,7 @@ RSpec.describe LiveEditor::Cli::Validators::ConfigSampleValidator do
 
       it 'returns an array with a notice' do
         validator.valid?
-        expect(validator.errors.first[:type]).to eql :notice
+        expect(validator.errors.first[:type]).to eql :warning
       end
 
       it 'returns an array with a notice message' do
@@ -153,7 +153,7 @@ RSpec.describe LiveEditor::Cli::Validators::ConfigSampleValidator do
 
       it 'returns an array with a notice' do
         validator.valid?
-        expect(validator.errors.first[:type]).to eql :notice
+        expect(validator.errors.first[:type]).to eql :warning
       end
 
       it 'returns an array with a notice message' do
@@ -174,7 +174,7 @@ RSpec.describe LiveEditor::Cli::Validators::ConfigSampleValidator do
 
       it 'returns an array with a notice' do
         validator.valid?
-        expect(validator.errors.first[:type]).to eql :notice
+        expect(validator.errors.first[:type]).to eql :warning
       end
 
       it 'returns an array with a notice message' do
@@ -195,7 +195,7 @@ RSpec.describe LiveEditor::Cli::Validators::ConfigSampleValidator do
 
       it 'returns an array with a notice' do
         validator.valid?
-        expect(validator.errors.first[:type]).to eql :notice
+        expect(validator.errors.first[:type]).to eql :warning
       end
 
       it 'returns an array with a notice message' do

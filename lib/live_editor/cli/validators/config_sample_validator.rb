@@ -22,7 +22,7 @@ module LiveEditor
               sample_config = JSON.parse(File.read(config_sample_loc))
             rescue Exception => e
               @errors << {
-                type: :notice,
+                type: :warning,
                 message: 'The file at `/config.json.sample` does not contain valid JSON markup.'
               }
 
@@ -33,7 +33,7 @@ module LiveEditor
             ['api_key', 'secret_key', 'admin_domain'].each do |key|
               if sample_config[key].present? && (key != 'admin_domain' || sample_config[key] != '.liveeditorapp.com')
                 @errors << {
-                  type: :notice,
+                  type: :warning,
                   message: "It is not recommended to store `#{key}` in the `/config.sample.json` file."
                 }
               end
