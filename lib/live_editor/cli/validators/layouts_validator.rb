@@ -125,7 +125,7 @@ module LiveEditor
           else
             self.errors << {
               type: :error,
-              messag: '`/layouts/layouts.json` does not exist.'
+              message: '`/layouts/layouts.json` does not exist.'
             }
           end
 

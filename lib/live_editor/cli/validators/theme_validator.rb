@@ -40,7 +40,7 @@ module LiveEditor
           else
             @errors << {
               type: :error,
-              messag: '`/theme.json` does not exist.'
+              message: '`/theme.json` does not exist.'
             }
           end
 
