@@ -39,9 +39,30 @@ shared_context 'with content_templates folder' do
 end
 
 shared_context 'with navigation folder' do
-  before  { Dir.mkdir(theme_root + '/navigation') }
+  before { Dir.mkdir(theme_root + '/navigation') }
 end
 
 shared_context 'with assets folder' do
-  before  { Dir.mkdir(theme_root + '/assets') }
+  before { Dir.mkdir(theme_root + '/assets') }
+end
+
+shared_context 'minimal valid theme' do
+  include_context 'basic theme'
+  include_context 'with layouts folder'
+
+  before do
+    File.open(theme_root + '/config.json', 'w') do |f|
+      f.write JSON.generate({
+        api_key: '1234567890',
+        secret_key: '0987654321',
+        admin_domain: 'example.liveeditorapp.com'
+      })
+
+      File.open(theme_root + '/layouts/layouts.json', 'w') do |f|
+        f.write JSON.generate({
+          layouts: []
+        })
+      end
+    end
+  end
 end
