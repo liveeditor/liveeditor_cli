@@ -14,13 +14,13 @@ module LiveEditor
       end
 
       desc 'content_template', 'Generator for new content templates.'
-      subcommand 'content_template', LiveEditor::Cli::Generators::ContentTemplate
+      subcommand 'content_template', LiveEditor::Cli::Generators::ContentTemplateGenerator
 
       desc 'layout', 'Generator for new layouts.'
-      subcommand 'layout', LiveEditor::Cli::Generators::Layout
+      subcommand 'layout', LiveEditor::Cli::Generators::LayoutGenerator
 
       desc 'navigation', 'Generator for new navigation menus.'
-      subcommand 'navigation', LiveEditor::Cli::Generators::Navigation
+      subcommand 'navigation', LiveEditor::Cli::Generators::NavigationGenerator
     end
   end
 end

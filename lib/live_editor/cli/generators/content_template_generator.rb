@@ -4,7 +4,7 @@ require 'json'
 module LiveEditor
   module Cli
     module Generators
-      class ContentTemplate < Thor
+      class ContentTemplateGenerator < Thor
         # We need this for file copying functionality.
         include Thor::Actions
 

@@ -4,7 +4,7 @@ require 'json'
 module LiveEditor
   module Cli
     module Generators
-      class Navigation < Thor
+      class NavigationGenerator < Thor
         # We need this for file copying functionality.
         include Thor::Actions
 

@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-RSpec.describe LiveEditor::Cli::Generators::Navigation do
+RSpec.describe LiveEditor::Cli::Generators::NavigationGenerator do
   context 'within valid theme' do
     include_context 'basic theme'
 
