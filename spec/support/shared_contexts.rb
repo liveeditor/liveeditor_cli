@@ -53,8 +53,6 @@ shared_context 'minimal valid theme' do
   before do
     File.open(theme_root + '/config.json', 'w') do |f|
       f.write JSON.generate({
-        api_key: '1234567890',
-        secret_key: '0987654321',
         admin_domain: 'example.liveeditorapp.com'
       })
 

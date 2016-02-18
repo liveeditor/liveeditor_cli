@@ -29,16 +29,12 @@ module LiveEditor
               return false
             end
 
-            # Validate presence of `api_key`, `secret_key`, and `admin_domain` attributes.
-            ['api_key', 'secret_key', 'admin_domain'].each do |key|
-              if config[key].blank?
-                a_an = key.start_with?('a') ? 'an' : 'a'
-
-                self.errors << {
-                  type: :error,
-                  message: "The file at `/config.json` must contain #{a_an} `#{key}` attribute."
-                }
-              end
+            # Validate presence of `admin_domain` attribute.
+            if config['admin_domain'].blank? || config['admin_domain'] == '.liveeditorapp.com'
+              self.errors << {
+                type: :error,
+                message: "The file at `/config.json` must contain an `admin_domain` attribute."
+              }
             end
           # No config.json.
           else

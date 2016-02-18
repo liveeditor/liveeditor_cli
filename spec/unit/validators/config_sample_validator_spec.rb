@@ -10,11 +10,22 @@ RSpec.describe LiveEditor::Cli::Validators::ConfigSampleValidator do
 
       before do
         File.open(theme_root + '/config.json.sample', 'w') do |f|
-          f.write JSON.generate({
-            api_key: '',
-            secret_key: '',
-            admin_domain: ''
-          })
+          f.write JSON.generate({ admin_domain: '' })
+        end
+      end
+
+      it 'returns true' do
+        expect(validator.valid?).to eql true
+      end
+    end
+
+    context 'with default value for `admin_domain` in `config.json.sample`' do
+      include_context 'basic theme'
+      include_context 'within theme root'
+
+      before do
+        File.open(theme_root + '/config.json.sample', 'w') do |f|
+          f.write JSON.generate({ admin_domain: '.liveeditorapp.com' })
         end
       end
 
@@ -47,41 +58,7 @@ RSpec.describe LiveEditor::Cli::Validators::ConfigSampleValidator do
       end
     end
 
-    context 'with api_key in config.json.sample' do
-      include_context 'basic theme'
-      include_context 'within theme root'
-
-      before do
-        File.open(theme_root + '/config.json.sample', 'w') do |f|
-          f.write JSON.generate({
-            api_key: '1234567890'
-          })
-        end
-      end
-
-      it 'is valid' do
-        expect(validator.valid?).to eql true
-      end
-    end
-
-    context 'with secret_key in config.json.sample' do
-      include_context 'basic theme'
-      include_context 'within theme root'
-
-      before do
-        File.open(theme_root + '/config.json.sample', 'w') do |f|
-          f.write JSON.generate({
-            secret_key: '0987654321'
-          })
-        end
-      end
-
-      it 'is valid' do
-        expect(validator.valid?).to eql true
-      end
-    end
-
-    context 'with admin_domain in config.json.sample' do
+    context 'with `admin_domain` in `config.json.sample`' do
       include_context 'basic theme'
       include_context 'within theme root'
 
@@ -106,11 +83,7 @@ RSpec.describe LiveEditor::Cli::Validators::ConfigSampleValidator do
 
       before do
         File.open(theme_root + '/config.json.sample', 'w') do |f|
-          f.write JSON.generate({
-            api_key: '',
-            secret_key: '',
-            admin_domain: ''
-          })
+          f.write JSON.generate({ admin_domain: '' })
         end
       end
 
@@ -141,49 +114,7 @@ RSpec.describe LiveEditor::Cli::Validators::ConfigSampleValidator do
       end
     end
 
-    context 'with api_key in config.json.sample' do
-      include_context 'basic theme'
-      include_context 'within theme root'
-
-      before do
-        File.open(theme_root + '/config.json.sample', 'w') do |f|
-          f.write JSON.generate({ api_key: '1234567890' })
-        end
-      end
-
-      it 'returns an array with a notice' do
-        validator.valid?
-        expect(validator.errors.first[:type]).to eql :warning
-      end
-
-      it 'returns an array with a notice message' do
-        validator.valid?
-        expect(validator.errors.first[:message]).to eql 'It is not recommended to store `api_key` in the `/config.sample.json` file.'
-      end
-    end
-
-    context 'with secret_key in config.json.sample' do
-      include_context 'basic theme'
-      include_context 'within theme root'
-
-      before do
-        File.open(theme_root + '/config.json.sample', 'w') do |f|
-          f.write JSON.generate({ secret_key: '0987654321' })
-        end
-      end
-
-      it 'returns an array with a notice' do
-        validator.valid?
-        expect(validator.errors.first[:type]).to eql :warning
-      end
-
-      it 'returns an array with a notice message' do
-        validator.valid?
-        expect(validator.errors.first[:message]).to eql 'It is not recommended to store `secret_key` in the `/config.sample.json` file.'
-      end
-    end
-
-    context 'with admin_domain in config.json.sample' do
+    context 'with `admin_domain` in `config.json.sample`' do
       include_context 'basic theme'
       include_context 'within theme root'
 

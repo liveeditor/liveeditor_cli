@@ -134,16 +134,14 @@ RSpec.describe LiveEditor::Cli::Main do
         before do
           File.open(theme_root + '/config.json.sample', 'w') do |f|
             f.write JSON.generate({
-              api_key: '1234567890',
-              api_secret: '',
-              admin_domain: '.liveeditorapp.com'
+              admin_domain: 'example.liveeditorapp.com'
             })
           end
         end
 
         it 'displays warning' do
           output = capture(:stdout) { subject.validate }
-          expect(output).to include 'WARNING: It is not recommended to store `api_key` in the `/config.sample.json` file.'
+          expect(output).to include 'WARNING: It is not recommended to store `admin_domain` in the `/config.sample.json` file.'
         end
       end
 
@@ -200,9 +198,7 @@ RSpec.describe LiveEditor::Cli::Main do
         before do
           File.open(theme_root + '/config.json.sample', 'w') do |f|
             f.write JSON.generate({
-              api_key: '1234567890',
-              api_secret: '',
-              admin_domain: '.liveeditorapp.com'
+              admin_domain: 'example.liveeditorapp.com'
             })
           end
         end
@@ -219,7 +215,7 @@ RSpec.describe LiveEditor::Cli::Main do
 
         it 'displays warning' do
           output = capture(:stdout) { subject.validate('config') }
-          expect(output).to include 'WARNING: It is not recommended to store `api_key` in the `/config.sample.json` file.'
+          expect(output).to include 'WARNING: It is not recommended to store `admin_domain` in the `/config.sample.json` file.'
         end
       end
     end

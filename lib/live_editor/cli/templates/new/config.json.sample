@@ -8,7 +8,5 @@
 // Sign up at www.liveeditorcms.com.
 
 {
-  "api_key": "",
-  "secret_key": "",
   "admin_domain": ".liveeditorapp.com"
 }
