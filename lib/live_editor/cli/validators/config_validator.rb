@@ -39,7 +39,7 @@ module LiveEditor
           # No config.json.
           else
             self.errors << {
-              type: :warning,
+              type: :error,
               message: '`/config.json` has not yet been created.'
             }
           end

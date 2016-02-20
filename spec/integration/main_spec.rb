@@ -46,7 +46,7 @@ RSpec.describe LiveEditor::Cli::Main do
         # Clean up generated my_theme directory.
         FileUtils.rm_rf(File.dirname(File.realpath(__FILE__)).sub('integration', 'my_theme'))
       end
-    end
+    end # with underscored TITLE
 
     context 'with titleized TITLE' do
       it "echoes new theme's name when titleized" do
@@ -85,7 +85,7 @@ RSpec.describe LiveEditor::Cli::Main do
         # Clean up generated my_theme directory.
         FileUtils.rm_rf(theme_root)
       end
-    end
+    end # with titleized TITLE
 
     context 'within existing theme' do
       include_context 'basic theme'
@@ -161,7 +161,7 @@ RSpec.describe LiveEditor::Cli::Main do
           expect(output).to include 'ERROR: The file at `/content_templates/content_templates.json` does not contain valid JSON markup.'
         end
       end
-    end
+    end # all
 
     describe 'layouts' do
       context 'with minimal valid theme' do
@@ -273,8 +273,8 @@ RSpec.describe LiveEditor::Cli::Main do
           output = capture(:stdout) { subject.validate('content_templates') }
           expect(output).to include 'ERROR: The file at `/content_templates/content_templates.json` does not contain valid JSON markup.'
         end
-      end
-    end
+      end # with `content_templates/content_templates.json` error
+    end # content_templates
 
     describe 'navigation' do
       context 'with `config.json.sample` warning' do
@@ -314,6 +314,37 @@ RSpec.describe LiveEditor::Cli::Main do
       it 'returns an error and does not generate any files' do
         output = capture(:stdout) { subject.validate }
         expect(output).to eql "ERROR: Must be within an existing Live Editor theme's folder to run this command."
+      end
+    end
+  end # validate
+
+  describe 'login' do
+    context 'outside of theme root' do
+      it 'displays an error' do
+        output = capture(:stdout) { subject.login }
+        expect(output).to eql "ERROR: Must be within an existing Live Editor theme's folder to run this command."
+      end
+    end
+
+    context 'with no `config.json`' do
+      include_context 'basic theme'
+      include_context 'within theme root'
+
+      it 'displays an error' do
+        output = capture(:stdout) { subject.login }
+        expect(output).to include 'ERROR: `/config.json` has not yet been created.'
+      end
+    end
+
+    context 'with valid email and password' do
+      include_context 'minimal valid theme'
+      include_context 'within theme root'
+
+      let(:output) { capture(:stdout) { subject.class.start(['login', '--email=user@example.com', '--password=n4ch0h4t']) } }
+
+      it 'echoes options passed' do
+        expect(output).to include 'Email: user@example.com'
+        expect(output).to include 'Password: ********'
       end
     end
   end

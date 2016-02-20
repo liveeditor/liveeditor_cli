@@ -26,7 +26,7 @@ RSpec.describe LiveEditor::Cli::Validators::ConfigValidator do
       include_context 'within theme root'
 
       it 'returns true' do
-        expect(validator.valid?).to eql true
+        expect(validator.valid?).to eql false
       end
     end
 

@@ -110,8 +110,66 @@ module LiveEditor
         end
       end
 
+      desc 'login', 'Log in to the Live Editor service specified in `config.json`.'
+      method_option :email, type: :string, desc: 'Email address to use for login'
+      method_option :password, type: :string, desc: 'Password to use for login'
+      def login
+        # Fail if we're not within a theme folder structure.
+        theme_root = LiveEditor::Cli::theme_root_dir! || return
+
+        say ''
+        say 'Logging in to Live Editor...'
+
+        # Validate config.
+        config_validator = LiveEditor::Cli::Validators::ConfigValidator.new
+        unless config_validator.valid?
+          display_validator_messages(config_validator.errors)
+          return
+        end
+
+        # Grab config.
+        config = JSON.parse(File.read(theme_root + '/config.json'))
+        say config['admin_domain']
+        say ''
+
+        # Ask for email and password from user.
+        email = if options[:email].present?
+          say "Email: #{options[:email]}"
+          options[:email]
+        else
+          email = ask('Email:')
+        end
+
+        password = if options[:password].present?
+          say "Password: #{options[:password].gsub(/./, '*')}"
+          options[:password]
+        else
+          ask('Password:', echo: false)
+        end
+
+        say ''
+        say ''
+
+        # Halt if no email or password were provided.
+        unless email.present? && password.present?
+          display_validator_messages [{
+            type: :error,
+            message: 'Enter both an email address and password.'
+          }]
+
+          return
+        end
+      end
+
       # Thor should not include anything in this block in its generated help docs.
       no_commands do
+        # Displays validator's messages.
+        def display_validator_messages(messages)
+          messages.each do |message|
+            say("#{message[:type].upcase}: #{message[:message]}", message_color_for(message[:type]))
+          end
+        end
+
         # Returns color symbol to use based on type.
         def message_color_for(type)
           case type
@@ -138,9 +196,7 @@ module LiveEditor
           end
 
           if messages.any?
-            messages.each do |message|
-              say("#{message[:type].upcase}: #{message[:message]}", message_color_for(message[:type]))
-            end
+            display_validator_messages(messages)
           else
             say('OK', :green)
           end
