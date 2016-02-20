@@ -61,7 +61,7 @@ module LiveEditor
       desc 'validate [TARGET]', 'Validate config and assets.'
       def validate(target = nil)
         # Fail if we're not within a theme folder structure.
-        theme_root = LiveEditor::Cli::theme_root_dir! || return
+        LiveEditor::Cli::theme_root_dir! || return
         target ||= 'all'
 
         say ''
