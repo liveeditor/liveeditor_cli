@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-RSpec.describe LiveEditor::Cli::Generators::ContentTemplateGenerator do
+RSpec.describe LiveEditor::CLI::Generators::ContentTemplateGenerator do
   context 'within valid theme' do
     include_context 'basic theme'
     before { FileUtils.cd(theme_root) }

@@ -1,5 +1,5 @@
 module LiveEditor
-  module Cli
+  module CLI
     module Validators
       class ConfigSampleValidator
         # Attributes
@@ -13,7 +13,7 @@ module LiveEditor
         # Returns an array of errors if any were found with `/config.sample.json`.
         def valid?
           # Grab location of /config.sample.json.
-          config_sample_loc = LiveEditor::Cli::theme_root_dir + '/config.json.sample'
+          config_sample_loc = LiveEditor::CLI::theme_root_dir + '/config.json.sample'
 
           # Validate existence of config.sample.json.
           if File.exist?(config_sample_loc)

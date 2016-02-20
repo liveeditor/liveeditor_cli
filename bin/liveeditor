@@ -8,4 +8,4 @@ $stdout.sync = true
 
 require 'live_editor/cli'
 
-LiveEditor::Cli::Main.start
+LiveEditor::CLI::Main.start

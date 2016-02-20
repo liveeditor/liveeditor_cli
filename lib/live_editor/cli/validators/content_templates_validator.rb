@@ -1,5 +1,5 @@
 module LiveEditor
-  module Cli
+  module CLI
     module Validators
       class ContentTemplatesValidator
         # Attributes
@@ -17,7 +17,7 @@ module LiveEditor
         # attribute after running this method.
         def valid?
           # Grab location of /content_templates folder.
-          templates_folder_loc = LiveEditor::Cli::theme_root_dir + '/content_templates'
+          templates_folder_loc = LiveEditor::CLI::theme_root_dir + '/content_templates'
 
           # content_templates folder is optional.
           return true unless File.exist?(templates_folder_loc)
@@ -139,7 +139,7 @@ module LiveEditor
             if content_template['displays'].any?
               # A folder named after the content template's `var_name` must be
               # present if there are any displays.
-              folder_name = content_template['var_name'] || LiveEditor::Cli::naming_for(content_template['title'])[:var_name]
+              folder_name = content_template['var_name'] || LiveEditor::CLI::naming_for(content_template['title'])[:var_name]
 
               if folder_name.present? && !File.exist?(templates_folder_loc + '/' + folder_name)
                 self.errors << {
@@ -167,8 +167,8 @@ module LiveEditor
           end
 
           # Matching file must be found within subfolder.
-          folder_name = content_template['var_name'] || LiveEditor::Cli::naming_for(content_template['title'])[:var_name]
-          filename = display['filename'] || LiveEditor::Cli::naming_for(display['title'])[:var_name]
+          folder_name = content_template['var_name'] || LiveEditor::CLI::naming_for(content_template['title'])[:var_name]
+          filename = display['filename'] || LiveEditor::CLI::naming_for(display['title'])[:var_name]
 
           if folder_name.present? && filename.present?
             filename += '_display.liquid'

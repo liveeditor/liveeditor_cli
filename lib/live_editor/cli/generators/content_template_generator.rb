@@ -2,7 +2,7 @@ require 'thor'
 require 'json'
 
 module LiveEditor
-  module Cli
+  module CLI
     module Generators
       class ContentTemplateGenerator < Thor
         # We need this for file copying functionality.
@@ -17,13 +17,13 @@ module LiveEditor
         desc 'content_template TITLE [BLOCKS]', 'Generate files needed for a new content template'
         def content_template(title, *blocks)
           # Fail if we're not within a theme folder structure.
-          theme_root = LiveEditor::Cli::theme_root_dir! || return
+          theme_root = LiveEditor::CLI::theme_root_dir! || return
 
           content_templates_folder = theme_root + '/content_templates'
           Dir.mkdir(content_templates_folder) unless File.exist?(content_templates_folder)
 
           content_template_config_loc = content_templates_folder + '/content_templates.json'
-          title_naming = LiveEditor::Cli::naming_for(title)
+          title_naming = LiveEditor::CLI::naming_for(title)
 
           say "Creating a new content template titled \"#{title_naming[:title]}\"..."
           say '      append  content_templates/content_templates.json'
@@ -80,7 +80,7 @@ module LiveEditor
             values = block.split(':')
             var_name = values.first
             type = values.size == 2 ? values.last : 'text'
-            title_naming = LiveEditor::Cli::naming_for(var_name)
+            title_naming = LiveEditor::CLI::naming_for(var_name)
 
             content_template_config['content_templates'].last[:blocks] << {
               title: title_naming[:title],

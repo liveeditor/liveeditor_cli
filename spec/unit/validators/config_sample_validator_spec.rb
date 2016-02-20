@@ -1,7 +1,7 @@
 require 'spec_helper'
 
-RSpec.describe LiveEditor::Cli::Validators::ConfigSampleValidator do
-  let(:validator) { LiveEditor::Cli::Validators::ConfigSampleValidator.new }
+RSpec.describe LiveEditor::CLI::Validators::ConfigSampleValidator do
+  let(:validator) { LiveEditor::CLI::Validators::ConfigSampleValidator.new }
 
   describe '.valid?' do
     context 'with valid config.json.sample' do

@@ -2,7 +2,7 @@ require 'thor'
 require 'json'
 
 module LiveEditor
-  module Cli
+  module CLI
     module Generators
       class NavigationGenerator < Thor
         # We need this for file copying functionality.
@@ -17,10 +17,10 @@ module LiveEditor
         desc 'navigation TITLE', 'Generate files needed for a new navigation menu'
         def navigation(title)
           # Fail if we're not within a theme folder structure.
-          theme_root = LiveEditor::Cli::theme_root_dir! || return
+          theme_root = LiveEditor::CLI::theme_root_dir! || return
 
           nav_config_loc = theme_root + '/navigation/navigation.json'
-          title_naming = LiveEditor::Cli::naming_for(title)
+          title_naming = LiveEditor::CLI::naming_for(title)
 
           say "Creating a new navigation menu titled \"#{title_naming[:title]}\"..."
           say '      append  navigation/navigation.json'

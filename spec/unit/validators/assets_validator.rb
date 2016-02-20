@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-RSpec.describe LiveEditor::Cli::Validators::AssetsValidator do
+RSpec.describe LiveEditor::CLI::Validators::AssetsValidator do
   let(:validator) { subject }
 
   describe '.valid?' do

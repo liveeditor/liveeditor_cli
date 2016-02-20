@@ -1,7 +1,7 @@
 require 'live_editor/cli/main'
 
 module LiveEditor
-  module Cli
+  module CLI
     # Returns a hash with 2 values for the `title`:
     #
     # 1. `title` is the titleized version. Ex. 'My Theme'

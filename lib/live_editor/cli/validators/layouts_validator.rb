@@ -1,5 +1,5 @@
 module LiveEditor
-  module Cli
+  module CLI
     module Validators
       class LayoutsValidator
         # Attributes
@@ -17,7 +17,7 @@ module LiveEditor
         # attribute after running this method.
         def valid?
           # Grab location of /layouts folder.
-          layouts_folder_loc = LiveEditor::Cli::theme_root_dir + '/layouts'
+          layouts_folder_loc = LiveEditor::CLI::theme_root_dir + '/layouts'
 
           unless File.exist?(layouts_folder_loc)
             self.errors << {
@@ -74,7 +74,7 @@ module LiveEditor
 
               # Filename must have matching liquid file.
               if layout_config['title'].present? || layout_config['filename'].present?
-                filename = layout_config['filename'] ? layout_config['filename'] : LiveEditor::Cli::naming_for(layout_config['title'])[:var_name]
+                filename = layout_config['filename'] ? layout_config['filename'] : LiveEditor::CLI::naming_for(layout_config['title'])[:var_name]
                 filename += '_layout.liquid'
 
                 unless File.exist?(layouts_folder_loc + '/' + filename)

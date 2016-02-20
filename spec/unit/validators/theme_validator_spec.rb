@@ -1,7 +1,7 @@
 require 'spec_helper'
 
-RSpec.describe LiveEditor::Cli::Validators::ThemeValidator do
-  let(:validator) { LiveEditor::Cli::Validators::ThemeValidator.new }
+RSpec.describe LiveEditor::CLI::Validators::ThemeValidator do
+  let(:validator) { LiveEditor::CLI::Validators::ThemeValidator.new }
 
   describe '.valid?' do
     context 'with valid theme.json' do

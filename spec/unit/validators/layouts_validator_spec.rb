@@ -1,7 +1,7 @@
 require 'spec_helper'
 
-RSpec.describe LiveEditor::Cli::Validators::LayoutsValidator do
-  let(:validator) { LiveEditor::Cli::Validators::LayoutsValidator.new }
+RSpec.describe LiveEditor::CLI::Validators::LayoutsValidator do
+  let(:validator) { LiveEditor::CLI::Validators::LayoutsValidator.new }
 
   describe '.valid?' do
     context 'with valid minimal layouts.json' do

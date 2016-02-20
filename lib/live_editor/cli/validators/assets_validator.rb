@@ -1,5 +1,5 @@
 module LiveEditor
-  module Cli
+  module CLI
     module Validators
       class AssetsValidator
         # Attributes
@@ -20,7 +20,7 @@ module LiveEditor
         # attribute after running this method.
         def valid?
           # Grab location of `/assets` folder.
-          assets_folder_loc = LiveEditor::Cli::theme_root_dir + '/assets'
+          assets_folder_loc = LiveEditor::CLI::theme_root_dir + '/assets'
 
           # `assets` folder is optional.
           return true unless File.exist?(assets_folder_loc)

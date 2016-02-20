@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-RSpec.describe LiveEditor::Cli::Generators::LayoutGenerator do
+RSpec.describe LiveEditor::CLI::Generators::LayoutGenerator do
   context 'within valid theme' do
     include_context 'basic theme'
 

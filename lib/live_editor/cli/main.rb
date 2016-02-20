@@ -14,7 +14,7 @@ require 'live_editor/cli/validators/assets_validator'
 require 'active_support/core_ext/string'
 
 module LiveEditor
-  module Cli
+  module CLI
     class Main < Thor
       include Thor::Actions
 
@@ -34,19 +34,19 @@ module LiveEditor
       desc 'version', 'Version of Live Editor CLI'
       map %w[-v --version] => :version
       def version
-        say "Live Editor CLI v#{LiveEditor::Cli::VERSION}"
+        say "Live Editor CLI v#{LiveEditor::CLI::VERSION}"
       end
 
       desc 'new TITLE', 'Create a new skeleton theme'
       def new(title)
         # Fail if we're already within another theme folder structure.
-        if LiveEditor::Cli::theme_root_dir
+        if LiveEditor::CLI::theme_root_dir
           say 'ERROR: Cannot create a new theme within the folder of another theme.'
           return
         end
 
         # Figure out values for title, folder name, and path.
-        title_naming = LiveEditor::Cli::naming_for(title)
+        title_naming = LiveEditor::CLI::naming_for(title)
         @title = title_naming[:title]
         say "Creating a new Live Editor theme titled \"#{@title}\"..."
 
@@ -56,12 +56,12 @@ module LiveEditor
 
       desc 'generate SUBCOMMAND', 'Generator for new layouts, content templates, navigation menus, etc.'
       map 'g' => :generate
-      subcommand 'generate', LiveEditor::Cli::Generate
+      subcommand 'generate', LiveEditor::CLI::Generate
 
       desc 'validate [TARGET]', 'Validate config and assets.'
       def validate(target = nil)
         # Fail if we're not within a theme folder structure.
-        LiveEditor::Cli::theme_root_dir! || return
+        LiveEditor::CLI::theme_root_dir! || return
         target ||= 'all'
 
         say ''
@@ -71,42 +71,42 @@ module LiveEditor
         if ['all', 'config'].include?(target)
           say ''
           say 'Validating config...'
-          run_validator([LiveEditor::Cli::Validators::ConfigValidator.new, LiveEditor::Cli::Validators::ConfigSampleValidator.new])
+          run_validator([LiveEditor::CLI::Validators::ConfigValidator.new, LiveEditor::CLI::Validators::ConfigSampleValidator.new])
         end
 
         # Theme validator
         if ['all', 'theme'].include?(target)
           say ''
           say 'Validating theme...'
-          run_validator(LiveEditor::Cli::Validators::ThemeValidator.new)
+          run_validator(LiveEditor::CLI::Validators::ThemeValidator.new)
         end
 
         # Layouts validator
         if ['all', 'layout', 'layouts'].include?(target)
           say ''
           say 'Validating layouts...'
-          run_validator(LiveEditor::Cli::Validators::LayoutsValidator.new)
+          run_validator(LiveEditor::CLI::Validators::LayoutsValidator.new)
         end
 
         # Content templates validator
         if ['all', 'content_template', 'content_templates'].include?(target)
           say ''
           say 'Validating content templates...'
-          run_validator(LiveEditor::Cli::Validators::ContentTemplatesValidator.new)
+          run_validator(LiveEditor::CLI::Validators::ContentTemplatesValidator.new)
         end
 
         # Navigation validator
         if ['all', 'navigation'].include?(target)
           say ''
           say 'Validating navigation menus...'
-          run_validator(LiveEditor::Cli::Validators::NavigationValidator.new)
+          run_validator(LiveEditor::CLI::Validators::NavigationValidator.new)
         end
 
         # Assets validator
         if ['all', 'assets'].include?(target)
           say ''
           say 'Validating assets...'
-          run_validator(LiveEditor::Cli::Validators::AssetsValidator.new)
+          run_validator(LiveEditor::CLI::Validators::AssetsValidator.new)
         end
       end
 
@@ -115,13 +115,13 @@ module LiveEditor
       method_option :password, type: :string, desc: 'Password to use for login'
       def login
         # Fail if we're not within a theme folder structure.
-        theme_root = LiveEditor::Cli::theme_root_dir! || return
+        theme_root = LiveEditor::CLI::theme_root_dir! || return
 
         say ''
         say 'Logging in to Live Editor...'
 
         # Validate config.
-        config_validator = LiveEditor::Cli::Validators::ConfigValidator.new
+        config_validator = LiveEditor::CLI::Validators::ConfigValidator.new
         unless config_validator.valid?
           display_validator_messages(config_validator.errors)
           return

@@ -1,5 +1,5 @@
 module LiveEditor
-  module Cli
+  module CLI
     module Validators
       class NavigationValidator
         # Attributes
@@ -17,7 +17,7 @@ module LiveEditor
         # attribute after running this method.
         def valid?
           # Grab location of /navigation folder.
-          nav_folder_loc = LiveEditor::Cli::theme_root_dir + '/navigation'
+          nav_folder_loc = LiveEditor::CLI::theme_root_dir + '/navigation'
 
           # navigation folder is optional.
           return true unless File.exist?(nav_folder_loc)
@@ -63,7 +63,7 @@ module LiveEditor
             end
 
             # Matching Liquid template must exist.
-            filename = nav_config['filename'] || nav_config['var_name'] || LiveEditor::Cli::naming_for(nav_config['title'])[:var_name]
+            filename = nav_config['filename'] || nav_config['var_name'] || LiveEditor::CLI::naming_for(nav_config['title'])[:var_name]
 
             if filename.present?
               filename += '_navigation.liquid'
