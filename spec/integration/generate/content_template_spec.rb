@@ -2,7 +2,7 @@ require 'spec_helper'
 
 RSpec.describe LiveEditor::CLI::Generators::ContentTemplateGenerator do
   context 'within valid theme' do
-    include_context 'basic theme'
+    include_context 'basic theme', false
     include_context 'within theme root'
 
     context 'with no content_templates folder' do
@@ -87,7 +87,7 @@ RSpec.describe LiveEditor::CLI::Generators::ContentTemplateGenerator do
   end # within valid theme
 
   context 'outside of theme folder' do
-    include_context 'outside of theme root'
+    include_context 'outside of theme root', false
 
     it 'returns an error and does not generate any files' do
       output = capture(:stdout) { subject.content_template('my_content_template') }

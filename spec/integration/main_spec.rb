@@ -10,7 +10,7 @@ RSpec.describe LiveEditor::CLI::Main do
 
   describe 'new' do
     context 'with underscored TITLE' do
-      include_context 'outside of theme root'
+      include_context 'outside of theme root', false
 
       it "echoes new theme's TITLE" do
         output = capture(:stdout) { subject.new('my_theme') }
@@ -21,25 +21,25 @@ RSpec.describe LiveEditor::CLI::Main do
         output = capture(:stdout) { subject.new('my_theme') }
 
         # Check that correct files were generated.
-        expect(File).to exist "/.live_editor/my_theme/assets/css/site.css"
-        expect(File).to exist "/.live_editor/my_theme/assets/fonts/.keep"
-        expect(File).to exist "/.live_editor/my_theme/assets/images/.keep"
-        expect(File).to exist "/.live_editor/my_theme/assets/js/init.js"
-        expect(File).to exist "/.live_editor/my_theme/assets/js/site.js"
-        expect(File).to exist "/.live_editor/my_theme/content_templates/.keep"
-        expect(File).to exist "/.live_editor/my_theme/includes/.keep"
-        expect(File).to exist "/.live_editor/my_theme/layouts/layouts.json"
-        expect(File).to exist "/.live_editor/my_theme/layouts/site_layout.liquid"
-        expect(File).to exist "/.live_editor/my_theme/navigation/global_navigation.liquid"
-        expect(File).to exist "/.live_editor/my_theme/navigation/navigation.json"
-        expect(File).to exist "/.live_editor/my_theme/.gitignore"
-        expect(File).to exist "/.live_editor/my_theme/config.json.sample"
-        expect(File).to exist "/.live_editor/my_theme/README.md"
-        expect(File).to exist "/.live_editor/my_theme/theme.json"
+        expect(File).to exist temp_folder + "/my_theme/assets/css/site.css"
+        expect(File).to exist temp_folder + "/my_theme/assets/fonts/.keep"
+        expect(File).to exist temp_folder + "/my_theme/assets/images/.keep"
+        expect(File).to exist temp_folder + "/my_theme/assets/js/init.js"
+        expect(File).to exist temp_folder + "/my_theme/assets/js/site.js"
+        expect(File).to exist temp_folder + "/my_theme/content_templates/.keep"
+        expect(File).to exist temp_folder + "/my_theme/includes/.keep"
+        expect(File).to exist temp_folder + "/my_theme/layouts/layouts.json"
+        expect(File).to exist temp_folder + "/my_theme/layouts/site_layout.liquid"
+        expect(File).to exist temp_folder + "/my_theme/navigation/global_navigation.liquid"
+        expect(File).to exist temp_folder + "/my_theme/navigation/navigation.json"
+        expect(File).to exist temp_folder + "/my_theme/.gitignore"
+        expect(File).to exist temp_folder + "/my_theme/config.json.sample"
+        expect(File).to exist temp_folder + "/my_theme/README.md"
+        expect(File).to exist temp_folder + "/my_theme/theme.json"
 
         # Check that template files were generated and parsed correctly.
-        expect(IO.read("/.live_editor/my_theme/README.md")).to match /^# My Theme/
-        expect(IO.read("/.live_editor/my_theme/theme.json")).to match /"title": "My Theme"/
+        expect(IO.read(temp_folder + "/my_theme/README.md")).to match /^# My Theme/
+        expect(IO.read(temp_folder + "/my_theme/theme.json")).to match /"title": "My Theme"/
 
         # Clean up generated my_theme directory.
         FileUtils.rm_rf(File.dirname(File.realpath(__FILE__)).sub('integration', 'my_theme'))
@@ -47,7 +47,7 @@ RSpec.describe LiveEditor::CLI::Main do
     end # with underscored TITLE
 
     context 'with titleized TITLE' do
-      include_context 'outside of theme root'
+      include_context 'outside of theme root', false
 
       it "echoes new theme's name when titleized" do
         output = capture(:stdout) { subject.new('My Theme') }
@@ -58,25 +58,25 @@ RSpec.describe LiveEditor::CLI::Main do
         output = capture(:stdout) { subject.new('My Theme') }
 
         # Check that correct files were generated.
-        expect(File).to exist "/.live_editor/my_theme/assets/css/site.css"
-        expect(File).to exist "/.live_editor/my_theme/assets/fonts/.keep"
-        expect(File).to exist "/.live_editor/my_theme/assets/images/.keep"
-        expect(File).to exist "/.live_editor/my_theme/assets/js/init.js"
-        expect(File).to exist "/.live_editor/my_theme/assets/js/site.js"
-        expect(File).to exist "/.live_editor/my_theme/content_templates/.keep"
-        expect(File).to exist "/.live_editor/my_theme/includes/.keep"
-        expect(File).to exist "/.live_editor/my_theme/layouts/layouts.json"
-        expect(File).to exist "/.live_editor/my_theme/layouts/site_layout.liquid"
-        expect(File).to exist "/.live_editor/my_theme/navigation/global_navigation.liquid"
-        expect(File).to exist "/.live_editor/my_theme/navigation/navigation.json"
-        expect(File).to exist "/.live_editor/my_theme/.gitignore"
-        expect(File).to exist "/.live_editor/my_theme/config.json.sample"
-        expect(File).to exist "/.live_editor/my_theme/README.md"
-        expect(File).to exist "/.live_editor/my_theme/theme.json"
+        expect(File).to exist temp_folder + "/my_theme/assets/css/site.css"
+        expect(File).to exist temp_folder + "/my_theme/assets/fonts/.keep"
+        expect(File).to exist temp_folder + "/my_theme/assets/images/.keep"
+        expect(File).to exist temp_folder + "/my_theme/assets/js/init.js"
+        expect(File).to exist temp_folder + "/my_theme/assets/js/site.js"
+        expect(File).to exist temp_folder + "/my_theme/content_templates/.keep"
+        expect(File).to exist temp_folder + "/my_theme/includes/.keep"
+        expect(File).to exist temp_folder + "/my_theme/layouts/layouts.json"
+        expect(File).to exist temp_folder + "/my_theme/layouts/site_layout.liquid"
+        expect(File).to exist temp_folder + "/my_theme/navigation/global_navigation.liquid"
+        expect(File).to exist temp_folder + "/my_theme/navigation/navigation.json"
+        expect(File).to exist temp_folder + "/my_theme/.gitignore"
+        expect(File).to exist temp_folder + "/my_theme/config.json.sample"
+        expect(File).to exist temp_folder + "/my_theme/README.md"
+        expect(File).to exist temp_folder + "/my_theme/theme.json"
 
         # Check that template files were generated and parsed correctly.
-        expect(IO.read("/.live_editor/my_theme/README.md")).to match /^# My Theme/
-        expect(IO.read("/.live_editor/my_theme/theme.json")).to match /"title": "My Theme"/
+        expect(IO.read(temp_folder + "/my_theme/README.md")).to match /^# My Theme/
+        expect(IO.read(temp_folder + "/my_theme/theme.json")).to match /"title": "My Theme"/
       end
     end # with titleized TITLE
 

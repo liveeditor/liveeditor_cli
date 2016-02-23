@@ -1,10 +1,30 @@
-shared_context 'basic theme' do
-  let(:theme_root) do
-    '/.live_editor/my_theme_' + (Time.now.to_f * 1000).to_i.to_s
+shared_context 'outside of theme root' do |fakefs = true|
+  let(:temp_folder) do
+    fakefs ? '/.live_editor' : Dir.home + '/./live_editor'
   end
 
   before do
-    Dir.mkdir('/.live_editor')
+    Dir.mkdir(temp_folder)
+    FileUtils.cd(temp_folder)
+  end
+
+  after do
+    FileUtils.cd('/')
+    FileUtils.rm_rf(temp_folder)
+  end
+end
+
+shared_context 'basic theme' do |fakefs = true|
+  let(:temp_folder) do
+    fakefs ? '/.live_editor' : Dir.home + '/.live_editor'
+  end
+
+  let(:theme_root) do
+    temp_folder + '/my_theme_' + (Time.now.to_f * 1000).to_i.to_s
+  end
+
+  before do
+    Dir.mkdir(temp_folder)
     Dir.mkdir(theme_root)
 
     File.open(theme_root + '/theme.json', 'w+') do |f|
@@ -14,7 +34,7 @@ shared_context 'basic theme' do
 
   after do
     FileUtils.cd('/')
-    FileUtils.rm_rf('/.live_editor')
+    FileUtils.rm_rf(temp_folder)
   end
 end
 
@@ -60,17 +80,5 @@ shared_context 'minimal valid theme' do
         })
       end
     end
-  end
-end
-
-shared_context 'outside of theme root' do
-  before do
-    Dir.mkdir('/.live_editor')
-    FileUtils.cd('/.live_editor')
-  end
-
-  after do
-    FileUtils.cd('/')
-    FileUtils.rm_rf('/.live_editor')
   end
 end
