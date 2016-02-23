@@ -20,9 +20,7 @@ module LiveEditor
         end
 
         case response
-        when Net::HTTPSuccess then
-          JSON.parse(response.body)
-        when Net::HTTPUnauthorized then
+        when Net::HTTPSuccess, Net::HTTPUnauthorized then
           JSON.parse(response.body)
         else
           { 'error' => 'There was an error connecting to the Live Editor API.' }
