@@ -3,6 +3,7 @@ require 'spec_helper'
 RSpec.describe LiveEditor::CLI::Generators::NavigationGenerator do
   context 'within valid theme' do
     include_context 'basic theme'
+    include_context 'within theme root'
 
     before do
       Dir.mkdir(theme_root + '/navigation')
@@ -11,11 +12,7 @@ RSpec.describe LiveEditor::CLI::Generators::NavigationGenerator do
         nav_config = { navigation: [] }
         f.write(JSON.generate(nav_config))
       end
-
-      FileUtils.cd theme_root
     end
-
-    after { FileUtils.cd('..') }
 
     context 'with titleized TITLE' do
       it "echoes new navigation menu's TITLE" do
@@ -61,6 +58,8 @@ RSpec.describe LiveEditor::CLI::Generators::NavigationGenerator do
   end # within valid theme
 
   context 'outside of theme folder' do
+    include_context 'outside of theme root'
+
     it 'returns an error and does not generate any files' do
       output = capture(:stdout) { subject.navigation('my_nav') }
       expect(output).to eql "ERROR: Must be within an existing Live Editor theme's folder to run this command."

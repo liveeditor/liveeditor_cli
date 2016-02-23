@@ -3,8 +3,7 @@ require 'spec_helper'
 RSpec.describe LiveEditor::CLI::Generators::ContentTemplateGenerator do
   context 'within valid theme' do
     include_context 'basic theme'
-    before { FileUtils.cd(theme_root) }
-    after { FileUtils.cd('..') }
+    include_context 'within theme root'
 
     context 'with no content_templates folder' do
       it 'creates a content_templates folder' do
@@ -88,6 +87,8 @@ RSpec.describe LiveEditor::CLI::Generators::ContentTemplateGenerator do
   end # within valid theme
 
   context 'outside of theme folder' do
+    include_context 'outside of theme root'
+
     it 'returns an error and does not generate any files' do
       output = capture(:stdout) { subject.content_template('my_content_template') }
       expect(output).to eql "ERROR: Must be within an existing Live Editor theme's folder to run this command."

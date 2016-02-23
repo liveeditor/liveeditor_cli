@@ -1,27 +1,25 @@
 shared_context 'basic theme' do
   let(:theme_root) do
-    folder = 'my_theme_' + (Time.now.to_f * 1000).to_i.to_s
-    File.dirname(File.realpath(__FILE__)).sub('support', folder)
+    '/.live_editor/my_theme_' + (Time.now.to_f * 1000).to_i.to_s
   end
 
   before do
+    Dir.mkdir('/.live_editor')
     Dir.mkdir(theme_root)
 
     File.open(theme_root + '/theme.json', 'w+') do |f|
-      f.write JSON.generate({
-        title: 'My Theme'
-      })
+      f.write JSON.generate({ title: 'My Theme' })
     end
   end
 
   after do
-    FileUtils.rm_rf(theme_root)
+    FileUtils.cd('/')
+    FileUtils.rm_rf('/.live_editor')
   end
 end
 
 shared_context 'within theme root' do
   before { FileUtils.cd(theme_root) }
-  after { FileUtils.cd('..') }
 end
 
 shared_context 'with layouts folder' do
@@ -62,5 +60,17 @@ shared_context 'minimal valid theme' do
         })
       end
     end
+  end
+end
+
+shared_context 'outside of theme root' do
+  before do
+    Dir.mkdir('/.live_editor')
+    FileUtils.cd('/.live_editor')
+  end
+
+  after do
+    FileUtils.cd('/')
+    FileUtils.rm_rf('/.live_editor')
   end
 end

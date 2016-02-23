@@ -1,8 +1,10 @@
 require 'spec_helper'
 
-RSpec.describe LiveEditor::CLI do
+RSpec.describe LiveEditor::CLI, fakefs: true do
   shared_examples 'theme_root_dir' do |method, sends_output|
     context 'outside of any theme folders' do
+      include_context 'outside of theme root'
+
       it 'returns nil' do
         # No worries: the expect still runs properly when inside of the
         # `capture` block.
@@ -19,8 +21,7 @@ RSpec.describe LiveEditor::CLI do
 
     context 'within theme root folder' do
       include_context 'basic theme'
-      before { FileUtils.cd(theme_root) }
-      after { FileUtils.cd('..') }
+      include_context 'within theme root'
 
       it 'returns the current folder' do
         expect(LiveEditor::CLI::send(method)).to eql theme_root
@@ -32,8 +33,6 @@ RSpec.describe LiveEditor::CLI do
           Dir.mkdir(subfolder)
           FileUtils.cd(subfolder)
         end
-
-        after { FileUtils.cd('..') }
 
         it 'returns the root folder' do
           expect(LiveEditor::CLI::send(method)).to eql theme_root
@@ -50,7 +49,7 @@ RSpec.describe LiveEditor::CLI do
     it_behaves_like('theme_root_dir', :theme_root_dir!, true)
   end
 
-  describe :naming_for do
+  describe '.naming_for' do
     describe :title do
       it 'titleizes a lowercase single word' do
         expect(LiveEditor::CLI::naming_for('staff')[:title]).to eql 'Staff'

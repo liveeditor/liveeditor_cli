@@ -3,6 +3,7 @@ require 'spec_helper'
 RSpec.describe LiveEditor::CLI::Generators::LayoutGenerator do
   context 'within valid theme' do
     include_context 'basic theme'
+    include_context 'within theme root'
 
     before do
       Dir.mkdir(theme_root + '/layouts')
@@ -11,11 +12,7 @@ RSpec.describe LiveEditor::CLI::Generators::LayoutGenerator do
         layout_config = { layouts: [] }
         f.write(JSON.generate(layout_config))
       end
-
-      FileUtils.cd theme_root
     end
-
-    after { FileUtils.cd('..') }
 
     context 'with titleized TITLE' do
       it "echoes new layout's TITLE" do
@@ -57,6 +54,8 @@ RSpec.describe LiveEditor::CLI::Generators::LayoutGenerator do
   end # within valid theme
 
   context 'outside of theme folder' do
+    include_context 'outside of theme root'
+
     it 'returns an error and does not generate any files' do
       output = capture(:stdout) { subject.layout('my_layout') }
       expect(output).to eql "ERROR: Must be within an existing Live Editor theme's folder to run this command."

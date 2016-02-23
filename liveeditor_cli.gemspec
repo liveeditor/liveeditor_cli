@@ -16,10 +16,12 @@ Gem::Specification.new do |gem|
   gem.require_paths = ['lib']
   gem.executables   = ['liveeditor']
 
-  gem.add_development_dependency 'rake',  '~> 10.0.4'
-  gem.add_development_dependency 'rspec', '~> 3.4.0'
+  gem.add_dependency 'thor',          '~> 0.19.1'
+  gem.add_dependency 'activesupport', '~> 4.2.5.1'
+  gem.add_dependency 'netrc',         '~> 0.11.0'
 
-  gem.add_dependency 'thor',              '~> 0.19.1'
-  gem.add_dependency 'activesupport',     '~> 4.2.5.1'
-  gem.add_dependency 'netrc',             '~> 0.11.0'
+  gem.add_development_dependency 'rake',    '~> 10.0.4'
+  gem.add_development_dependency 'rspec',   '~> 3.4.0'
+  gem.add_development_dependency 'fakefs',  '~> 0.8.0'
+  gem.add_development_dependency 'webmock', '~> 1.24.0'
 end

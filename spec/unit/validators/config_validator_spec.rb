@@ -1,7 +1,7 @@
 require 'spec_helper'
 
-RSpec.describe LiveEditor::CLI::Validators::ConfigValidator do
-  let(:validator) { LiveEditor::CLI::Validators::ConfigValidator.new }
+RSpec.describe LiveEditor::CLI::Validators::ConfigValidator, fakefs: true do
+  let(:validator) { subject }
 
   describe '.valid?' do
     context 'with valid config.json' do

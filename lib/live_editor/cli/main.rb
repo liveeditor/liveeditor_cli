@@ -1,4 +1,5 @@
 require 'thor'
+require 'live_editor/api'
 require 'live_editor/cli/version'
 require 'live_editor/cli/generators/content_template_generator'
 require 'live_editor/cli/generators/layout_generator'
@@ -129,7 +130,7 @@ module LiveEditor
 
         # Grab config.
         config = JSON.parse(File.read(theme_root + '/config.json'))
-        say config['admin_domain']
+        say "Connecting to #{config['admin_domain']}."
         say ''
 
         # Ask for email and password from user.
@@ -144,7 +145,7 @@ module LiveEditor
           say "Password: #{options[:password].gsub(/./, '*')}"
           options[:password]
         else
-          ask('Password:', echo: false)
+          ask('Password (typing will be hidden):', echo: false)
         end
 
         say ''
@@ -158,6 +159,18 @@ module LiveEditor
           }]
 
           return
+        end
+
+        LiveEditor::API::admin_domain = config['admin_domain']
+        LiveEditor::API::use_ssl = config.has_key?('use_ssl') ? config['use_ssl'] : true
+        oauth = LiveEditor::API::OAuth.new
+        response = oauth.login(email, password)
+
+        if response.is_a?(Hash) && response['refresh_token'].present?
+          LiveEditor::CLI::store_credentials(config['admin_domain'], email, response['refresh_token'])
+          say("You are now logged in to the admin at `#{config['admin_domain']}`.", :green)
+        elsif response.is_a?(Hash) && response['error'].present?
+          say('ERROR: ' + response['error'], :red)
         end
       end
 

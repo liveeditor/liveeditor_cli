@@ -36,7 +36,7 @@ module LiveEditor
 
               self.errors << {
                 type: :warning,
-                message: "The file at `#{filename}` is a source file. In most cases, we recommend moving this outside of the `/assets` folder."
+                message: "The file at `/#{filename}` is a source file. In most cases, we recommend moving this outside of the `/assets` folder."
               }
             end
           end

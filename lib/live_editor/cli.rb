@@ -1,7 +1,15 @@
+require 'netrc'
 require 'live_editor/cli/main'
 
 module LiveEditor
   module CLI
+    # Stores login and password for a given admin domain.
+    def self.store_credentials(admin_domain, email, password)
+      n = Netrc.read
+      n[admin_domain] = email, password
+      n.save
+    end
+
     # Returns a hash with 2 values for the `title`:
     #
     # 1. `title` is the titleized version. Ex. 'My Theme'
@@ -18,7 +26,7 @@ module LiveEditor
     #
     # If the script is being run from outside of any theme, this returns `nil`.
     def self.theme_root_dir
-      current_dir = FileUtils.pwd
+      current_dir = Dir.pwd
 
       loop do
         if Dir[current_dir + '/theme.json'].size > 0
