@@ -1,15 +1,9 @@
+require 'live_editor/cli/validators/validator'
+
 module LiveEditor
   module CLI
     module Validators
-      class ContentTemplatesValidator
-        # Attributes
-        attr_reader :errors
-
-        # Constructor.
-        def initialize
-          @errors = []
-        end
-
+      class ContentTemplatesValidator < Validator
         # Returns whether or not any errors were found within
         # `/content_templates/content_templates.json` (if it even exists).
         #
@@ -33,7 +27,7 @@ module LiveEditor
           begin
             templates_config = JSON.parse(File.read(templates_config_loc))
           rescue Exception => e
-            self.errors << {
+            self.messages << {
               type: :error,
               message: 'The file at `/content_templates/content_templates.json` does not contain valid JSON markup.'
             }
@@ -44,7 +38,7 @@ module LiveEditor
           # Validate presence of root `content_templates` attribute.
           # Returns false on failure because we can't continue further unless this is valid.
           unless templates_config['content_templates'].present? && templates_config['content_templates'].is_a?(Array)
-            self.errors << {
+            self.messages << {
               type: :error,
               message: 'The file at `/content_templates/content_templates.json` must contain a root `content_templates` attribute containing an array.'
             }
@@ -66,7 +60,7 @@ module LiveEditor
         def validate_block(block, content_template_index, block_index)
           # Title is required.
           if block['title'].blank?
-            self.errors << {
+            self.messages << {
               type: :error,
               message: "The content template in position #{content_template_index + 1}'s block in position #{block_index + 1} within the file at `/content_templates/content_templates.json` does not have a valid `title`."
             }
@@ -74,7 +68,7 @@ module LiveEditor
 
           # Type is required.
           if block['type'].blank?
-            self.errors << {
+            self.messages << {
               type: :error,
               message: "The content template in position #{content_template_index + 1}'s block in position #{block_index + 1} within the file at `/content_templates/content_templates.json` does not have a valid `type`."
             }
@@ -82,7 +76,7 @@ module LiveEditor
 
           # Required is optional but must be boolean if set.
           if block['required'].present? && ![true, false].include?(block['required'])
-            self.errors << {
+            self.messages << {
               type: :error,
               message: "The content template in position #{content_template_index + 1}'s block in position #{block_index + 1} within the file at `/content_templates/content_templates.json` does not have a valid boolean value for `required`."
             }
@@ -90,7 +84,7 @@ module LiveEditor
 
           # `inline` is optional but must be boolean if set.
           if block['inline'].present? && ![true, false].include?(block['inline'])
-            self.errors << {
+            self.messages << {
               type: :error,
               message: "The content template in position #{content_template_index + 1}'s block in position #{block_index + 1} within the file at `/content_templates/content_templates.json` does not have a valid boolean value for `inline`."
             }
@@ -101,7 +95,7 @@ module LiveEditor
         def validate_content_template(content_template, index, templates_folder_loc)
           # Title is required.
           if content_template['title'].blank?
-            self.errors << {
+            self.messages << {
               type: :error,
               message: "The content template in position #{index + 1} within the file at `/content_templates/content_templates.json` does not have a valid `title`."
             }
@@ -109,7 +103,7 @@ module LiveEditor
 
           # Unique is optional but must be boolean.
           if content_template['unique'].present? && ![true, false].include?(content_template['unique'])
-            self.errors << {
+            self.messages << {
               type: :error,
               message: "The content template in position #{index + 1} within the file at `/content_templates/content_templates.json` does not have a valid value for `unique`."
             }
@@ -117,7 +111,7 @@ module LiveEditor
 
           # Blocks must be an array (if set).
           if content_template['blocks'].present? && !content_template['blocks'].is_a?(Array)
-            self.errors << {
+            self.messages << {
               type: :error,
               message: "The content template in position #{index + 1}'s `blocks` attribute must be an array."
             }
@@ -130,7 +124,7 @@ module LiveEditor
 
           # Displays must be an array (if set).
           if content_template['displays'].present? && !content_template['displays'].is_a?(Array)
-            self.errors << {
+            self.messages << {
               type: :error,
               message: "The content template in position #{index + 1}'s `displays` attribute must be an array."
             }
@@ -142,7 +136,7 @@ module LiveEditor
               folder_name = content_template['var_name'] || LiveEditor::CLI::naming_for(content_template['title'])[:var_name]
 
               if folder_name.present? && !File.exist?(templates_folder_loc + '/' + folder_name)
-                self.errors << {
+                self.messages << {
                   type: :error,
                   message: "The content template in position #{index + 1} is missing a matching folder at `content_templates/#{folder_name}`."
                 }
@@ -160,7 +154,7 @@ module LiveEditor
         def validate_display(display, content_template_index, display_index, content_template, templates_folder_loc)
           # `title` is required.
           if display['title'].blank?
-            self.errors << {
+            self.messages << {
               type: :error,
               message: "The content template in position #{content_template_index + 1}'s display in position #{display_index + 1} within the file at `/content_templates/content_templates.json` does not have a valid `title`."
             }
@@ -174,7 +168,7 @@ module LiveEditor
             filename += '_display.liquid'
 
             if !File.exist?(templates_folder_loc + '/' + folder_name + '/' + filename)
-              self.errors << {
+              self.messages << {
                 type: :error,
                 message: "The content template in position #{content_template_index + 1}'s display in position #{display_index + 1} within the file at `/content_templates/content_templates.json` is missing its matching Liquid template at `/content_templates/#{folder_name}/#{filename}`."
               }

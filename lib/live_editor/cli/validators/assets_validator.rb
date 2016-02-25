@@ -1,17 +1,11 @@
+require 'live_editor/cli/validators/validator'
+
 module LiveEditor
   module CLI
     module Validators
-      class AssetsValidator
-        # Attributes
-        attr_reader :errors
-
+      class AssetsValidator < Validator
         # Constants.
         SOURCE_EXTENSIONS = %w(scss sass less coffee ts)
-
-        # Constructor.
-        def initialize
-          @errors = []
-        end
 
         # Returns whether or not any errors were found within the `/assets`
         # folder.
@@ -34,14 +28,14 @@ module LiveEditor
             if extension.present? && SOURCE_EXTENSIONS.include?(extension)
               filename = file.sub(assets_folder_loc, '/assets')
 
-              self.errors << {
+              self.messages << {
                 type: :warning,
                 message: "The file at `/#{filename}` is a source file. In most cases, we recommend moving this outside of the `/assets` folder."
               }
             end
           end
 
-          self.errors.select { |error| error[:type] == :error }.size == 0
+          self.errors.size == 0
         end
       end
     end

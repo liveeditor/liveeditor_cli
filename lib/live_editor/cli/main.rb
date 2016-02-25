@@ -205,7 +205,7 @@ module LiveEditor
 
           validators.each do |validator|
             validator.valid?
-            messages.concat(validator.errors) if validator.errors.any?
+            messages.concat(validator.messages) if validator.messages.any?
           end
 
           if messages.any?

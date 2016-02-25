@@ -1,15 +1,9 @@
+require 'live_editor/cli/validators/validator'
+
 module LiveEditor
   module CLI
     module Validators
-      class LayoutsValidator
-        # Attributes
-        attr_reader :errors
-
-        # Constructor.
-        def initialize
-          @errors = []
-        end
-
+      class LayoutsValidator < Validator
         # Returns whether or not any errors were found within
         # `/layouts/layouts.json`.
         #
@@ -20,7 +14,7 @@ module LiveEditor
           layouts_folder_loc = LiveEditor::CLI::theme_root_dir + '/layouts'
 
           unless File.exist?(layouts_folder_loc)
-            self.errors << {
+            self.messages << {
               type: :error,
               message: 'The folder at `/layouts` does not exist.'
             }
@@ -36,7 +30,7 @@ module LiveEditor
             begin
               layouts_config = JSON.parse(File.read(layouts_config_loc))
             rescue Exception => e
-              self.errors << {
+              self.messages << {
                 type: :error,
                 message: 'The file at `/layouts/layouts.json` does not contain valid JSON markup.'
               }
@@ -46,7 +40,7 @@ module LiveEditor
 
             # Validate presence of root `layouts` attribute.
             unless layouts_config['layouts'] && layouts_config['layouts'].is_a?(Array)
-              self.errors << {
+              self.messages << {
                 type: :error,
                 message: 'The file at `/layouts/layouts.json` must contain a root `layouts` attribute containing an array.'
               }
@@ -58,7 +52,7 @@ module LiveEditor
             layouts_config['layouts'].each_with_index do |layout_config, index|
               # Title is required.
               if layout_config['title'].blank?
-                self.errors << {
+                self.messages << {
                   type: :error,
                   message: "The layout in position #{index + 1} within the file at `/layouts/layouts.json` does not have a valid title."
                 }
@@ -66,7 +60,7 @@ module LiveEditor
 
               # Unique is optional but must be boolean.
               if layout_config['unique'].present? && ![true, false].include?(layout_config['unique'])
-                self.errors << {
+                self.messages << {
                   type: :error,
                   message: "The layout in position #{index + 1} within the file at `/layouts/layouts.json` does not have a valid value for `unique`."
                 }
@@ -78,7 +72,7 @@ module LiveEditor
                 filename += '_layout.liquid'
 
                 unless File.exist?(layouts_folder_loc + '/' + filename)
-                  self.errors << {
+                  self.messages << {
                     type: :error,
                     message: "The layout in position #{index + 1} is missing its matching Liquid template: `#{filename}`."
                   }
@@ -87,7 +81,7 @@ module LiveEditor
 
               # Regions must be an array (if set).
               if layout_config['regions'] && !layout_config['regions'].is_a?(Array)
-                self.errors << {
+                self.messages << {
                   type: :error,
                   message: "The layout in position #{index + 1}'s `regions` attribute must be an array."
                 }
@@ -97,7 +91,7 @@ module LiveEditor
                 layout_config['regions'].each_with_index do |region_config, r_index|
                   # Title is required.
                   if region_config['title'].blank?
-                    self.errors << {
+                    self.messages << {
                       type: :error,
                       message: "The layout in position #{index + 1}'s region in position #{r_index + 1} must have a `title`."
                     }
@@ -105,7 +99,7 @@ module LiveEditor
 
                   # Content templates must be an array (if present).
                   if region_config['content_templates'].present? && !region_config['content_templates'].is_a?(Array)
-                    self.errors << {
+                    self.messages << {
                       type: :error,
                       message: "The layout in position #{index + 1}'s region in position #{r_index + 1} has an invalid `content_templates` attribute: must be an array."
                     }
@@ -113,7 +107,7 @@ module LiveEditor
 
                   # Max num content must be an integer (if present).
                   if region_config['max_num_content'].present? && !region_config['max_num_content'].is_a?(Integer)
-                    self.errors << {
+                    self.messages << {
                       type: :error,
                       message: "The layout in position #{index + 1}'s region in position #{r_index + 1} has an invalid `max_num_content` attribute: must be an integer."
                     }
@@ -123,7 +117,7 @@ module LiveEditor
             end
           # No layouts.json.
           else
-            self.errors << {
+            self.messages << {
               type: :error,
               message: '`/layouts/layouts.json` does not exist.'
             }

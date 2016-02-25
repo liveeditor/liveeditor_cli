@@ -1,15 +1,9 @@
+require 'live_editor/cli/validators/validator'
+
 module LiveEditor
   module CLI
     module Validators
-      class NavigationValidator
-        # Attributes
-        attr_reader :errors
-
-        # Constructor.
-        def initialize
-          @errors = []
-        end
-
+      class NavigationValidator < Validator
         # Returns whether or not any errors were found within
         # `/navigation/navigation.json` (if it even exists).
         #
@@ -34,7 +28,7 @@ module LiveEditor
           begin
             nav_config = JSON.parse(File.read(nav_config_loc))
           rescue Exception => e
-            self.errors << {
+            self.messages << {
               type: :error,
               message: 'The file at `/navigation/navigation.json` does not contain valid JSON markup.'
             }
@@ -44,7 +38,7 @@ module LiveEditor
 
           # Validate presence of root `navigation` attribute.
           unless nav_config['navigation'].present? && nav_config['navigation'].is_a?(Array)
-            self.errors << {
+            self.messages << {
               type: :error,
               message: 'The file at `/navigation/navigation.json` must contain a root `navigation` attribute containing an array.'
             }
@@ -56,7 +50,7 @@ module LiveEditor
           nav_config['navigation'].each_with_index do |nav_config, index|
             # `title` is required.
             if nav_config['title'].blank?
-              self.errors << {
+              self.messages << {
                 type: :error,
                 message: "The navigation menu in position #{index + 1} within the file at `/navigation/navigation.json` does not have a valid `title`."
               }
@@ -69,7 +63,7 @@ module LiveEditor
               filename += '_navigation.liquid'
 
               unless File.exist?(nav_folder_loc + '/' + filename)
-                self.errors << {
+                self.messages << {
                   type: :error,
                   message: "The navigation menu in position #{index + 1} is missing its matching Liquid template: `/navigation/#{filename}`."
                 }

@@ -1,15 +1,9 @@
+require 'live_editor/cli/validators/validator'
+
 module LiveEditor
   module CLI
     module Validators
-      class ConfigSampleValidator
-        # Attributes
-        attr_reader :errors
-
-        # Constructor.
-        def initialize
-          @errors = []
-        end
-
+      class ConfigSampleValidator < Validator
         # Returns an array of errors if any were found with `/config.sample.json`.
         def valid?
           # Grab location of /config.sample.json.
@@ -21,7 +15,7 @@ module LiveEditor
             begin
               sample_config = JSON.parse(File.read(config_sample_loc))
             rescue Exception => e
-              @errors << {
+              self.messages << {
                 type: :warning,
                 message: 'The file at `/config.json.sample` does not contain valid JSON markup.'
               }
@@ -31,14 +25,14 @@ module LiveEditor
 
             # Validate presence of `admin_domain` attribute.
             if sample_config['admin_domain'].present? && sample_config['admin_domain'] != '.liveeditorapp.com'
-              @errors << {
+              self.messages << {
                 type: :warning,
                 message: "It is not recommended to store `admin_domain` in the `/config.sample.json` file."
               }
             end
           end
 
-          @errors.select { |error| error[:type] == :error }.size == 0
+          self.errors.size == 0
         end
       end
     end
