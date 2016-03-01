@@ -82,3 +82,10 @@ shared_context 'minimal valid theme' do
     end
   end
 end
+
+shared_context 'logged in' do
+  before do
+    admin_domain = JSON.parse(File.read(theme_root + '/config.json'))['admin_domain']
+    LiveEditor::CLI::store_credentials(admin_domain, 'test@example.com', 'n4ch0h4t')
+  end
+end

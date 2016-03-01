@@ -60,55 +60,82 @@ module LiveEditor
       subcommand 'generate', LiveEditor::CLI::Generate
 
       desc 'validate [TARGET]', 'Validate config and assets.'
-      def validate(target = nil)
+      def validate(target = nil, options = {})
+        # Silent option defaults to false
+        options[:silent] = options.has_key?(:silent) ? options[:silent] : false
+
         # Fail if we're not within a theme folder structure.
         LiveEditor::CLI::theme_root_dir! || return
         target ||= 'all'
 
-        say ''
-        say 'Validating Live Editor theme...'
+        valid = true
+
+        unless options[:silent]
+          say ''
+          say 'Validating Live Editor theme...'
+        end
 
         # Config validator
         if ['all', 'config'].include?(target)
-          say ''
-          say 'Validating config...'
-          run_validator([LiveEditor::CLI::Validators::ConfigValidator.new, LiveEditor::CLI::Validators::ConfigSampleValidator.new])
+          unless options[:silent]
+            say ''
+            say 'Validating config...'
+          end
+
+          valid = valid && run_validator([LiveEditor::CLI::Validators::ConfigValidator.new, LiveEditor::CLI::Validators::ConfigSampleValidator.new], options[:silent])
         end
 
         # Theme validator
         if ['all', 'theme'].include?(target)
-          say ''
-          say 'Validating theme...'
-          run_validator(LiveEditor::CLI::Validators::ThemeValidator.new)
+          unless options[:silent]
+            say ''
+            say 'Validating theme...'
+          end
+
+          valid = valid && run_validator(LiveEditor::CLI::Validators::ThemeValidator.new, options[:silent])
         end
 
         # Layouts validator
         if ['all', 'layout', 'layouts'].include?(target)
-          say ''
-          say 'Validating layouts...'
-          run_validator(LiveEditor::CLI::Validators::LayoutsValidator.new)
+          unless options[:silent]
+            say ''
+            say 'Validating layouts...'
+          end
+
+          valid = valid && run_validator(LiveEditor::CLI::Validators::LayoutsValidator.new, options[:silent])
         end
 
         # Content templates validator
         if ['all', 'content_template', 'content_templates'].include?(target)
-          say ''
-          say 'Validating content templates...'
-          run_validator(LiveEditor::CLI::Validators::ContentTemplatesValidator.new)
+          unless options[:silent]
+            say ''
+            say 'Validating content templates...'
+          end
+
+          valid = valid && run_validator(LiveEditor::CLI::Validators::ContentTemplatesValidator.new, options[:silent])
         end
 
         # Navigation validator
         if ['all', 'navigation'].include?(target)
-          say ''
-          say 'Validating navigation menus...'
-          run_validator(LiveEditor::CLI::Validators::NavigationValidator.new)
+          unless options[:silent]
+            say ''
+            say 'Validating navigation menus...'
+          end
+
+          valid = valid && run_validator(LiveEditor::CLI::Validators::NavigationValidator.new, options[:silent])
         end
 
         # Assets validator
         if ['all', 'assets'].include?(target)
-          say ''
-          say 'Validating assets...'
-          run_validator(LiveEditor::CLI::Validators::AssetsValidator.new)
+          unless options[:silent]
+            say ''
+            say 'Validating assets...'
+          end
+
+          valid = valid && run_validator(LiveEditor::CLI::Validators::AssetsValidator.new, options[:silent])
         end
+
+        valid
       end
 
       desc 'login', 'Log in to the Live Editor service specified in `config.json`.'
@@ -129,7 +156,7 @@ module LiveEditor
         end
 
         # Grab config.
-        config = JSON.parse(File.read(theme_root + '/config.json'))
+        config = read_config!
         say "Connecting to #{config['admin_domain']}."
         say ''
 
@@ -174,7 +201,24 @@ module LiveEditor
         end
       end
 
-      # Thor should not include anything in this block in its generated help docs.
+      desc 'push', 'Deploys theme files and assets to Live Editor service.'
+      def push
+        # Validate the theme. Stop if there are an errors.
+        validate('all', silent: true) || return
+
+        # Validate login.
+        config = read_config!
+        n = Netrc.read
+        email, password = n[config['admin_domain']]
+
+        unless email.present? && password.present?
+          say('ERROR: You must be logged in. Run the `liveeditor login` command to login.', :red)
+          return
+        end
+      end
+
+      # Thor should not include anything in this block in its generated help
+      # docs.
       no_commands do
         # Displays validator's messages.
         def display_validator_messages(messages)
@@ -191,6 +235,13 @@ module LiveEditor
           end
         end
 
+        # Reads config file. Assumes that it has already been validated, so be
+        # sure to do that before running this method.
+        def read_config!
+          theme_root = LiveEditor::CLI::theme_root_dir!
+          config = JSON.parse(File.read(theme_root + '/config.json'))
+        end
+
         # Provides theme title to generator templates in
         # `live_editor/cli-templates`.
         def theme_title
@@ -199,20 +250,24 @@ module LiveEditor
 
         # Runs a given validator. Pass a single validator or an array of
         # validators to process in unison.
-        def run_validator(validator)
+        def run_validator(validator, silent)
           validators = validator.is_a?(Array) ? validator : [validator]
           messages = []
+          errors = []
 
           validators.each do |validator|
             validator.valid?
             messages.concat(validator.messages) if validator.messages.any?
+            errors.concat(validator.errors) if validator.errors.any?
           end
 
           if messages.any?
             display_validator_messages(messages)
-          else
+          elsif !silent
             say('OK', :green)
           end
+
+          errors.empty?
         end
       end
     end

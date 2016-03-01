@@ -365,5 +365,36 @@ RSpec.describe LiveEditor::CLI::Main do
         expect(output).to include 'ERROR: Invalid email or password.'
       end
     end
-  end
+  end # login
+
+  describe 'push', fakefs: true do
+    context 'outside of theme root' do
+      include_context 'outside of theme root'
+
+      it 'displays an error' do
+        output = capture(:stdout) { subject.push }
+        expect(output).to eql "ERROR: Must be within an existing Live Editor theme's folder to run this command."
+      end
+    end
+
+    context 'with no `config.json`' do
+      include_context 'basic theme'
+      include_context 'within theme root'
+
+      it 'displays an error' do
+        output = capture(:stdout) { subject.push }
+        expect(output).to include 'ERROR: `/config.json` has not yet been created.'
+      end
+    end
+
+    context 'not logged in' do
+      include_context 'minimal valid theme'
+      include_context 'within theme root'
+
+      it 'displays an error' do
+        output = capture(:stdout) { subject.push }
+        expect(output).to include 'ERROR: You must be logged in. Run the `liveeditor login` command to login.'
+      end
+    end
+  end # push
 end
