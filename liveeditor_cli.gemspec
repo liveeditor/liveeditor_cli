@@ -16,9 +16,13 @@ Gem::Specification.new do |gem|
   gem.require_paths = ['lib']
   gem.executables   = ['liveeditor']
 
-  gem.add_dependency 'thor',          '~> 0.19.1'
-  gem.add_dependency 'activesupport', '~> 4.2.5.1'
-  gem.add_dependency 'netrc',         '~> 0.11.0'
+  gem.add_dependency 'thor',           '~> 0.19.1'
+  gem.add_dependency 'activesupport',  '~> 4.2.6'
+  gem.add_dependency 'netrc',          '~> 0.11.0'
+  gem.add_dependency 'multipart-post', '~> 2.0.0'
+  gem.add_dependency 'mime-types',     '~> 3.0'
+  gem.add_dependency 'mimemagic',      '~> 0.3.1'
+  gem.add_dependency 'cocaine',        '~> 0.5.8'
 
   gem.add_development_dependency 'rake',    '~> 10.0.4'
   gem.add_development_dependency 'rspec',   '~> 3.4.0'

@@ -1,6 +1,6 @@
 shared_context 'outside of theme root' do |fakefs = true|
   let(:temp_folder) do
-    fakefs ? '/.live_editor' : Dir.home + '/./live_editor'
+    fakefs ? '/.live_editor' : Dir.home + '/.live_editor'
   end
 
   before do
@@ -64,28 +64,47 @@ shared_context 'with assets folder' do
   before { Dir.mkdir(theme_root + '/assets') }
 end
 
-shared_context 'minimal valid theme' do
-  include_context 'basic theme'
-  include_context 'with layouts folder'
-
+shared_context 'with config.json' do
   before do
     File.open(theme_root + '/config.json', 'w') do |f|
       f.write JSON.generate({
         admin_domain: 'example.liveeditorapp.com'
       })
-
-      File.open(theme_root + '/layouts/layouts.json', 'w') do |f|
-        f.write JSON.generate({
-          layouts: []
-        })
-      end
     end
   end
+end
+
+shared_context 'with layouts.json' do
+  before do
+    File.open(theme_root + '/layouts/layouts.json', 'w') do |f|
+      f.write JSON.generate({
+        layouts: []
+      })
+    end
+  end
+end
+
+shared_context 'minimal valid theme' do
+  include_context 'basic theme'
+  include_context 'with layouts folder'
+  include_context 'with layouts.json'
+  include_context 'with config.json'
 end
 
 shared_context 'logged in' do
   before do
     admin_domain = JSON.parse(File.read(theme_root + '/config.json'))['admin_domain']
-    LiveEditor::CLI::store_credentials(admin_domain, 'test@example.com', 'n4ch0h4t')
+    LiveEditor::CLI::store_credentials(admin_domain, 'test@example.com', '1234567890', '0987654321')
+  end
+end
+
+shared_context 'with image asset' do
+  before do
+    Dir.mkdir(theme_root + '/assets')
+    Dir.mkdir(theme_root + '/assets/images')
+
+    File.open(theme_root + '/assets/images/logo.png', 'w') do |f|
+      f.write '123456'
+    end
   end
 end

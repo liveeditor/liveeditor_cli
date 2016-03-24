@@ -156,7 +156,7 @@ module LiveEditor
         end
 
         # Grab config.
-        config = read_config!
+        config = LiveEditor::CLI::read_config!
         say "Connecting to #{config['admin_domain']}."
         say ''
 
@@ -185,35 +185,61 @@ module LiveEditor
             message: 'Enter both an email address and password.'
           }]
 
-          return
+          return 1
         end
 
-        LiveEditor::API::admin_domain = config['admin_domain']
-        LiveEditor::API::use_ssl = config.has_key?('use_ssl') ? config['use_ssl'] : true
+        client = LiveEditor::API::Client.new(domain: config['admin_domain'])
+        client.use_ssl = config.has_key?('use_ssl') ? config['use_ssl'] : true
+        LiveEditor::API::client = client
+
         oauth = LiveEditor::API::OAuth.new
         response = oauth.login(email, password)
 
-        if response.is_a?(Hash) && response['refresh_token'].present?
-          LiveEditor::CLI::store_credentials(config['admin_domain'], email, response['refresh_token'])
+        if response.success?
+          data = response.parsed_body
+          LiveEditor::CLI::store_credentials(config['admin_domain'], email, data['access_token'], data['refresh_token'])
           say("You are now logged in to the admin at `#{config['admin_domain']}`.", :green)
-        elsif response.is_a?(Hash) && response['error'].present?
-          say('ERROR: ' + response['error'], :red)
+        elsif response.errors.any?
+          say('ERROR: ' + response.errors.first['detail'], :red)
         end
       end
 
       desc 'push', 'Deploys theme files and assets to Live Editor service.'
       def push
+        # Fail if we're not within a theme folder structure.
+        theme_root = LiveEditor::CLI::theme_root_dir! || return
+
         # Validate the theme. Stop if there are an errors.
         validate('all', silent: true) || return
 
-        # Validate login.
-        config = read_config!
-        n = Netrc.read
-        email, password = n[config['admin_domain']]
+        LiveEditor::CLI::configure_client!
+        client = LiveEditor::API::client
 
-        unless email.present? && password.present?
+        # Validate login.
+        if client.refresh_token.blank?
           say('ERROR: You must be logged in. Run the `liveeditor login` command to login.', :red)
           return
+        end
+
+        # Upload assets.
+        say('Uploading assets...')
+        files = Dir.glob(theme_root + '/assets/**/*').reject { |file| File.directory?(file) }
+
+        files.each do |file|
+          filename = file.sub(theme_root, '').sub('/assets/', '')
+          say('/assets/' + filename)
+
+          content_type = LiveEditor::CLI::Uploads::ContentTypeDetector.new(file).detect
+          response = nil # Scope this outside of the File.open block below so we can access it aferward.
+
+          File.open(file) do |file_to_upload|
+            response = LiveEditor::API::Themes::Assets::Upload.create(file_to_upload, filename, content_type)
+          end
+
+          # Store new credentials if access token was refreshed.
+          if response.refreshed_oauth?
+            LiveEditor::CLI::store_credentials(client.domain, client.email, client.access_token, client.refresh_token)
+          end
         end
       end
 
@@ -233,13 +259,6 @@ module LiveEditor
           when :error then :red
           when :warning then :yellow
           end
-        end
-
-        # Reads config file. Assumes that it has already been validated, so be
-        # sure to do that before running this method.
-        def read_config!
-          theme_root = LiveEditor::CLI::theme_root_dir!
-          config = JSON.parse(File.read(theme_root + '/config.json'))
         end
 
         # Provides theme title to generator templates in
