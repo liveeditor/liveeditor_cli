@@ -84,8 +84,8 @@ shared_context 'with layouts.json' do
   end
 end
 
-shared_context 'minimal valid theme' do
-  include_context 'basic theme'
+shared_context 'minimal valid theme' do |fakefs = true|
+  include_context 'basic theme', fakefs
   include_context 'with layouts folder'
   include_context 'with layouts.json'
   include_context 'with config.json'
