@@ -19,9 +19,7 @@ module LiveEditor
 
           # Sends info about upload to Live Editor for further processing.
           def self.send_upload_to_live_editor(file, filename, signature)
-            client = LiveEditor::API::client
-
-            client.post('/themes/assets/uploads', payload: {
+            LiveEditor::API::client.post('/themes/assets/uploads', payload: {
               data: {
                 type: 'asset-uploads',
                 attributes: {

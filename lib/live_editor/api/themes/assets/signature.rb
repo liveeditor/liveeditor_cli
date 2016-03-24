@@ -14,8 +14,7 @@ module LiveEditor
           # -  `filename` - Path from theme's `assets/`` folder and filename to
           #    be uploaded.
           def self.create(filename, content_type)
-            client = LiveEditor::API::client
-            client.post('/themes/assets/signatures', form_data: { filename: filename, 'content-type' => content_type })
+            LiveEditor::API::client.post('/themes/assets/signatures', form_data: { filename: filename, 'content-type' => content_type })
           end
         end
       end
