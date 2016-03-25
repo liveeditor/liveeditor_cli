@@ -213,4 +213,22 @@ RSpec.describe LiveEditor::API::Response do
       end
     end
   end
+
+  describe '#unauthorized?' do
+    context 'with `HTTPUnauthorized` object' do
+      it 'returns `true`' do
+        unauthorized_response = Net::HTTPUnauthorized.new('1.1', 401, '')
+        response = LiveEditor::API::Response.new(unauthorized_response)
+        expect(response.unauthorized?).to eql true
+      end
+    end
+
+    context 'with `HTTPSuccess` object' do
+      it 'returns `true`' do
+        success_response = Net::HTTPRedirection.new('1.1', 200, '')
+        response = LiveEditor::API::Response.new(success_response)
+        expect(response.unauthorized?).to eql false
+      end
+    end
+  end
 end

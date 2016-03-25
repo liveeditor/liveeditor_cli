@@ -61,6 +61,11 @@ module LiveEditor
         self.response.is_a?(Net::HTTPSuccess) || self.response.is_a?(Net::HTTPRedirection)
       end
 
+      # Returns whether or not the response is unauthorized.
+      def unauthorized?
+        self.response.is_a?(Net::HTTPUnauthorized)
+      end
+
     private
 
       # Returns whether or not the JSON-parsed body contains valid data.
