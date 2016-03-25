@@ -64,12 +64,6 @@ module LiveEditor
         # Request access token if we're authorizing the request and none is set.
         refreshed_oauth = if options[:authorize] && self.access_token.blank?
           request_access_token!
-          client = LiveEditor::API::client
-
-          {
-            'access_token' => client.access_token,
-            'refresh_token' => client.refresh_token
-          }
         end
 
         # Build request object.
@@ -82,8 +76,18 @@ module LiveEditor
         request.body = options[:payload].to_json if options[:payload].present?
 
         # Do request and return response.
-        response = Net::HTTP.start(uri.hostname, self.port) { |http| http.request(request) }
-        LiveEditor::API::Response.new(response, refreshed_oauth)
+        response = run_request_for(uri, request, refreshed_oauth)
+
+        # If response was unauthorized, refresh access token and try one more
+        # time.
+        if response.unauthorized? && options[:authorize] && refreshed_oauth.blank?
+          token_refresh_data = request_access_token!
+          request['Authorization'] = "Bearer #{self.access_token}"
+          run_request_for(uri, request, token_refresh_data)
+        # Otherwise, return response as-is.
+        else
+          response
+        end
       end
 
       # Returns `URI` object configured with `domain`, `use_ssl?`, and provided
@@ -112,9 +116,16 @@ module LiveEditor
           data = response.parsed_body
           self.access_token = data['access_token']
           self.refresh_token = data['refresh_token']
+          data
         else
           raise
         end
+      end
+
+      # Runs request for given URI object and HTTP request object.
+      def run_request_for(uri, http_request, refreshed_oauth = nil)
+        response = Net::HTTP.start(uri.hostname, self.port) { |http| http.request(http_request) }
+        LiveEditor::API::Response.new(response, refreshed_oauth)
       end
     end
   end
