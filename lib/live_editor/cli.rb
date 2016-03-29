@@ -1,4 +1,5 @@
 require 'netrc'
+require 'net_http_ssl_fix'
 require 'live_editor/api/client'
 require 'live_editor/cli/uploads/content_type_detector'
 require 'live_editor/cli/main'
