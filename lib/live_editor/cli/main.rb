@@ -13,6 +13,7 @@ require 'live_editor/cli/validators/content_templates_validator'
 require 'live_editor/cli/validators/navigation_validator'
 require 'live_editor/cli/validators/assets_validator'
 require 'active_support/core_ext/string'
+require 'active_support/rescuable'
 
 module LiveEditor
   module CLI
@@ -241,6 +242,10 @@ module LiveEditor
             LiveEditor::CLI::store_credentials(client.domain, client.email, client.access_token, client.refresh_token)
           end
         end
+
+      rescue LiveEditor::API::OAuthRefreshError => e
+        say "Your login credentials have expired. Please login again with the `liveeditor login` command", :red
+        return
       end
 
       # Thor should not include anything in this block in its generated help

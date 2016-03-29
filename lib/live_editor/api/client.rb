@@ -3,6 +3,8 @@ require 'live_editor/api/version'
 
 module LiveEditor
   module API
+    class OAuthRefreshError < Exception; end
+
     class Client
       # Default user agent to use for API calls.
       USER_AGENT = "liveeditor_api gem/#{LiveEditor::API::VERSION} (#{RUBY_PLATFORM}) ruby/#{RUBY_VERSION}"
@@ -108,6 +110,9 @@ module LiveEditor
     private
 
       # Requests an access token from the API's OAuth endpoint.
+      #
+      # Raises `LiveEditor::API::OAuthRefreshError` if it fails refreshing the
+      # token.
       def request_access_token!
         oauth = LiveEditor::API::OAuth.new
         response = oauth.request_access_token(self.refresh_token)
@@ -118,7 +123,7 @@ module LiveEditor
           self.refresh_token = data['refresh_token']
           data
         else
-          raise
+          raise LiveEditor::API::OAuthRefreshError
         end
       end
 
