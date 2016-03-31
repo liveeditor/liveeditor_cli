@@ -12,9 +12,11 @@ Gem::Specification.new do |gem|
   gem.homepage      = 'http://www.liveeditorcms.com/support/designers/themes/cli-reference/'
   gem.license       = 'MIT'
 
-  gem.test_files    = gem.files.grep(%r{^(test|spec|features)/})
+  gem.files         = `git ls-files`.split("\n")
+  gem.test_files    = `git ls-files -- {test,spec,features}/*`.split("\n")
+  gem.executables   = `git ls-files -- bin/*`.split("\n").map{ |f| File.basename(f) }
   gem.require_paths = ['lib']
-  gem.executables   = ['liveeditor']
+  gem.executables  << 'liveeditor'
 
   gem.add_dependency 'thor',            '~> 0.19.1'
   gem.add_dependency 'activesupport',   '~> 4.2.6'
