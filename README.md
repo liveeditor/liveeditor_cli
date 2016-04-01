@@ -20,29 +20,39 @@ $ gem install liveeditor_cli
 ## Common Commands
 
 ```bash
-$ liveeditor new TITLE          # Generate a new theme in a subfolder based on
-                                # TITLE.
+$ liveeditor new TITLE            # Generate a new theme in a subfolder based on
+                                  # TITLE.
 
-$ liveeditor login              # Log in to the Live Editor service.
+$ liveeditor login                # Log in to the Live Editor service.
 
-$ liveeditor validate [TARGET]  # Validate that theme is implemented correctly.
-                                # Optional TARGETs:
-                                # -  all (default)
-                                # -  assets
-                                # -  config
-                                # -  content_templates
-                                # -  layouts
-                                # -  navigation
-                                # -  theme
+$ liveeditor generate SUBCOMMAND  # Generate a layout, content template, or
+                                  # navigation menu.
+                                  #
+                                  # Valid SUBCOMMANDs:
+                                  # -  layout
+                                  # -  content_template
+                                  # -  navigation
 
-$ liveeditor server             # Run a development server for previewing your
-                                # theme.
+$ liveeditor validate [TARGET]    # Validate that theme is implemented
+                                  # correctly.
+                                  #
+                                  # Optional TARGETs:
+                                  # -  all (default)
+                                  # -  assets
+                                  # -  config
+                                  # -  content_templates
+                                  # -  layouts
+                                  # -  navigation
+                                  # -  theme
 
-$ liveeditor push               # Validate and push theme files to Live Editor
-                                # for publication.
+$ liveeditor server               # Run a development server for previewing your
+                                  # theme.
 
-$ liveeditor help [COMMAND]     # Instructions for all commands (or optionally
-                                # details about a single COMMAND).
+$ liveeditor push                 # Validate and push theme files to Live Editor
+                                  # for publication.
+
+$ liveeditor help [COMMAND]       # Instructions for all commands (or optionally
+                                  # details about a single COMMAND).
 ```
 
 For a complete list of commands and options, refer to the
