@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-RSpec.describe LiveEditor::CLI::Generators::LayoutGenerator do
+RSpec.describe LiveEditor::CLI::Main do
   context 'within valid theme' do
     include_context 'basic theme', false
     include_context 'within theme root'
@@ -16,38 +16,38 @@ RSpec.describe LiveEditor::CLI::Generators::LayoutGenerator do
 
     context 'with titleized TITLE' do
       it "echoes new layout's TITLE" do
-        output = capture(:stdout) { subject.layout('My Layout') }
+        output = capture(:stdout) { subject.generate('layout', 'My Layout') }
         expect(output).to match /Creating a new Live Editor layout titled "My Layout".../
       end
 
       it 'adds the new theme entry into layouts.json' do
-        output = capture(:stdout) { subject.layout('My Layout') }
+        output = capture(:stdout) { subject.generate('layout', 'My Layout') }
         layout_config = JSON.parse(File.read(theme_root + '/layouts/layouts.json'))
 
         expect(layout_config['layouts'].first['title']).to eql 'My Layout'
       end
 
       it 'creates a new my_layout.liquid file' do
-        output = capture(:stdout) { subject.layout('My Layout') }
+        output = capture(:stdout) { subject.generate('layout', 'My Layout') }
         expect(File).to exist(theme_root + '/layouts/my_layout_layout.liquid')
       end
     end
 
     context 'with underscored TITLE' do
       it "echoes new layout's TITLE" do
-        output = capture(:stdout) { subject.layout('my_layout') }
+        output = capture(:stdout) { subject.generate('layout', 'my_layout') }
         expect(output).to match /Creating a new Live Editor layout titled "My Layout".../
       end
 
       it 'adds the new theme entry into layouts.json' do
-        output = capture(:stdout) { subject.layout('my_layout') }
+        output = capture(:stdout) { subject.generate('layout', 'my_layout') }
         layout_config = JSON.parse(File.read(theme_root + '/layouts/layouts.json'))
 
         expect(layout_config['layouts'].first['title']).to eql 'My Layout'
       end
 
       it 'creates a new my_layout.liquid file' do
-        output = capture(:stdout) { subject.layout('my_layout') }
+        output = capture(:stdout) { subject.generate('layout', 'my_layout') }
         expect(File).to exist(theme_root + '/layouts/my_layout_layout.liquid')
       end
     end
@@ -57,7 +57,7 @@ RSpec.describe LiveEditor::CLI::Generators::LayoutGenerator do
     include_context 'outside of theme root', false
 
     it 'returns an error and does not generate any files' do
-      output = capture(:stdout) { subject.layout('my_layout') }
+      output = capture(:stdout) { subject.generate('layout', 'my_layout') }
       expect(output).to eql "ERROR: Must be within an existing Live Editor theme's folder to run this command."
       expect(File).to_not exist(FileUtils.pwd + '/layouts/my_layout_layout.liquid')
     end
