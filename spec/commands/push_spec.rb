@@ -26,6 +26,23 @@ RSpec.describe LiveEditor::CLI::Main do
       end
     end
 
+    context 'logged in with partial' do
+      include_context 'minimal valid theme', false
+      include_context 'within theme root'
+      include_context 'logged in'
+      include_context 'with partial'
+
+      it 'uploads the image asset' do
+        stub_request(:post, "http://example.api.liveeditorapp.com/themes/partials")
+          .to_return(status: 201)
+
+        output = capture(:stdout) { subject.push }
+        expect(output).to include 'Uploading partials...'
+        expect(output).to include '/partials/header.liquid'
+        expect(output).to_not include 'ERROR'
+      end
+    end
+
     context 'outside of theme root', fakefs: true do
       include_context 'outside of theme root'
 

@@ -2,6 +2,7 @@ require 'live_editor/api/response'
 require 'live_editor/api/oauth'
 require 'live_editor/api/themes/assets/signature'
 require 'live_editor/api/themes/assets/upload'
+require 'live_editor/api/themes/partial'
 
 module LiveEditor
   module API

@@ -235,7 +235,7 @@ module LiveEditor
         end
 
         # Upload assets.
-        say('Uploading assets...')
+        say 'Uploading assets...'
         files = Dir.glob(theme_root + '/assets/**/*').reject { |file| File.directory?(file) }
 
         files.each do |file|
@@ -247,6 +247,27 @@ module LiveEditor
 
           File.open(file) do |file_to_upload|
             response = LiveEditor::API::Themes::Assets::Upload.create(file_to_upload, filename, content_type)
+          end
+
+          # Store new credentials if access token was refreshed.
+          if response.refreshed_oauth?
+            LiveEditor::CLI::store_credentials(client.domain, client.email, client.access_token, client.refresh_token)
+          end
+        end
+        say ''
+
+        # Upload partials.
+        say 'Uploading partials...'
+        files = Dir.glob(theme_root + '/partials/**/*').reject { |file| File.directory?(file) }
+
+        files.each do |file|
+          filename = file.sub(theme_root, '').sub('/partials/', '')
+          say('/partials/' + filename)
+
+          response = nil # Scope this outside of the File.open block below so we can access it aferward.
+
+          File.open(file) do |file_to_upload|
+            response = LiveEditor::API::Themes::Partial.create(file_to_upload, filename)
           end
 
           # Store new credentials if access token was refreshed.

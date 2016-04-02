@@ -108,3 +108,17 @@ shared_context 'with image asset' do
     end
   end
 end
+
+shared_context 'with partial' do
+  before do
+    Dir.mkdir(theme_root + '/partials')
+
+    File.open(theme_root + '/partials/header.liquid', 'w') do |f|
+      f.write <<-LIQUID
+        <header class="header">
+          {% navigation "global" %}
+        </header>
+      LIQUID
+    end
+  end
+end
