@@ -267,7 +267,7 @@ module LiveEditor
           response = nil # Scope this outside of the File.open block below so we can access it aferward.
 
           File.open(file) do |file_to_upload|
-            response = LiveEditor::API::Themes::Partial.create(file_to_upload, filename)
+            response = LiveEditor::API::Themes::Partial.create(filename, file_to_upload.read)
           end
 
           # Store new credentials if access token was refreshed.
