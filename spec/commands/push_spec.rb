@@ -32,13 +32,40 @@ RSpec.describe LiveEditor::CLI::Main do
       include_context 'logged in'
       include_context 'with partial'
 
-      it 'uploads the image asset' do
+      it 'uploads the partial content' do
         stub_request(:post, "http://example.api.liveeditorapp.com/themes/partials")
           .to_return(status: 201)
 
         output = capture(:stdout) { subject.push }
         expect(output).to include 'Uploading partials...'
         expect(output).to include '/partials/header.liquid'
+        expect(output).to_not include 'ERROR'
+      end
+    end
+
+    context 'logged in with layout' do
+      include_context 'minimal valid theme', false
+      include_context 'within theme root'
+      include_context 'logged in'
+      include_context 'with layout Liquid template', 'site'
+
+      before do
+        File.open(theme_root + '/layouts/layouts.json', 'w') do |f|
+          f.write JSON.generate({
+            layouts: [
+              { title: 'Site' }
+            ]
+          })
+        end
+      end
+
+      it 'uploads the layout content' do
+        stub_request(:post, "http://example.api.liveeditorapp.com/layouts")
+          .to_return(status: 201)
+
+        output = capture(:stdout) { subject.push }
+        expect(output).to include 'Uploading layouts...'
+        expect(output).to include '/layouts/site_layout.liquid'
         expect(output).to_not include 'ERROR'
       end
     end

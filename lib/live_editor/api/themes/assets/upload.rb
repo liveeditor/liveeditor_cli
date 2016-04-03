@@ -1,3 +1,4 @@
+require 'net/http'
 require 'net/http/post/multipart'
 
 module LiveEditor

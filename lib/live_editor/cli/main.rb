@@ -275,6 +275,40 @@ module LiveEditor
             LiveEditor::CLI::store_credentials(client.domain, client.email, client.access_token, client.refresh_token)
           end
         end
+        say ''
+
+        # Upload layouts.
+        say 'Uploading layouts...'
+        layouts_config = File.read(theme_root + '/layouts/layouts.json')
+        layouts_config = JSON.parse(layouts_config)
+
+        files = Dir.glob(theme_root + '/layouts/**/*').reject do |file|
+          File.directory?(file) || file == theme_root + '/layouts/layouts.json'
+        end
+
+        files.each do |file|
+          filename = file.sub(theme_root, '').sub('/layouts/', '')
+          say('/layouts/' + filename)
+
+          # Grab entry for layout from `layouts.config`.
+          config_entry = layouts_config['layouts'].select do |config|
+            config['filename'] == filename.sub('_layout.liquid', '') ||
+              config['title'].underscore == filename.sub('_layout.liquid', '')
+          end.first
+
+          response = nil # Scope this outside of the File.open block below so we can access it aferward.
+
+          File.open(file) do |file_to_upload|
+            response = LiveEditor::API::Themes::Layout.create config_entry['title'], filename, file_to_upload.read,
+                                                              description: config_entry['description'],
+                                                              unique: config_entry['unique']
+          end
+
+          # Store new credentials if access token was refreshed.
+          if response.refreshed_oauth?
+            LiveEditor::CLI::store_credentials(client.domain, client.email, client.access_token, client.refresh_token)
+          end
+        end
 
       rescue LiveEditor::API::OAuthRefreshError => e
         say "Your login credentials have expired. Please login again with the `liveeditor login` command", :red

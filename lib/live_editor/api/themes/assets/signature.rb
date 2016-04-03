@@ -1,5 +1,3 @@
-require 'net/http'
-
 module LiveEditor
   module API
     module Themes

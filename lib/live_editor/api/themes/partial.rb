@@ -1,10 +1,8 @@
-require 'net/http'
-
 module LiveEditor
   module API
     module Themes
       class Partial
-        # Creates a `parital` record.
+        # Creates a `partial` record.
         #
         # Arguments:
         #
