@@ -17,7 +17,7 @@ module LiveEditor
         def self.create(title, file_name, content, attributes = {})
           attributes[:unique] ||= false
 
-          LiveEditor::API::client.post('/layouts', payload: {
+          LiveEditor::API::client.post('/themes/layouts', payload: {
             data: {
               type: 'layouts',
               attributes: {

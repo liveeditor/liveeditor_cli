@@ -60,7 +60,7 @@ RSpec.describe LiveEditor::CLI::Main do
       end
 
       it 'uploads the layout content' do
-        stub_request(:post, "http://example.api.liveeditorapp.com/layouts")
+        stub_request(:post, "http://example.api.liveeditorapp.com/themes/layouts")
           .to_return(status: 201)
 
         output = capture(:stdout) { subject.push }
