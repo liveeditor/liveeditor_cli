@@ -37,6 +37,29 @@ module LiveEditor
         @user_agent = options[:user_agent]
       end
 
+      # Performs a `PATCH` operation on the Live Editor API.
+      #
+      # Arguments:
+      #
+      # -  `url` - URL path to patch to. Example: `/themes/layouts`.
+      #
+      # Options:
+      #
+      # -  `payload` - Body data to pass along with request. If you pass a
+      #    hash or array for this, it will be serialized into JSON markup.
+      # -  `authorize` - Whether or not the API request needs to be authorized
+      #    with an access token. Defaults to `true`.
+      # -  `json_api` - Boolean that indicates whether or not this request must
+      #    follow the JSON API specification. Defaults to `true`.
+      # -  `form_data` - Hash for use in normal form `POST` variables. Note
+      #    that if you're trying to pass data via a JSON API paylaod (which
+      #    applies 90% of the time), you'll instead want to pass that via
+      #    the `payload` option.
+      def patch(url, options = {})
+        uri = self.uri_for(url)
+        run_request_for(uri, Net::HTTP::Patch.new(uri), options)
+      end
+
       # Performs a `POST` operation on the Live Editor API.
       #
       # Arguments:
@@ -56,45 +79,13 @@ module LiveEditor
       #    applies 90% of the time), you'll instead want to pass that via
       #    the `payload` option.
       def post(url, options = {})
-        # Option defaults.
-        options[:authorize] = options.has_key?(:authorize) ? options[:authorize] : true
-        options[:json_api] = options.has_key?(:json_api) ? options[:json_api] : true
-
-        # URI to pass to Net::HTTP.
-        uri = self.uri(url)
-
-        # Request access token if we're authorizing the request and none is set.
-        refreshed_oauth = if options[:authorize] && self.access_token.blank?
-          request_access_token!
-        end
-
-        # Build request object.
-        request = Net::HTTP::Post.new(uri)
-        request['User-Agent'] = self.user_agent
-        request['Authorization'] = "Bearer #{self.access_token}" if options[:authorize]
-        request['Content-Type'] = 'application/vnd.api+json' if options[:json_api] && options[:payload].present?
-        request['Accept'] = 'application/vnd.api+json' if options[:json_api]
-        request.set_form_data(options[:form_data]) if options[:form_data].present?
-        request.body = options[:payload].to_json if options[:payload].present?
-
-        # Do request and return response.
-        response = run_request_for(uri, request, refreshed_oauth)
-
-        # If response was unauthorized, refresh access token and try one more
-        # time.
-        if response.unauthorized? && options[:authorize] && refreshed_oauth.blank?
-          token_refresh_data = request_access_token!
-          request['Authorization'] = "Bearer #{self.access_token}"
-          run_request_for(uri, request, token_refresh_data)
-        # Otherwise, return response as-is.
-        else
-          response
-        end
+        uri = self.uri_for(url)
+        run_request_for(uri, Net::HTTP::Post.new(uri), options)
       end
 
       # Returns `URI` object configured with `domain`, `use_ssl?`, and provided
       # parameters.
-      def uri(path)
+      def uri_for(path)
         protocol = self.use_ssl? ? 'https' : 'http'
         api_domain = self.domain.split('.')
         api_domain = api_domain.insert(1, 'api')
@@ -128,9 +119,40 @@ module LiveEditor
       end
 
       # Runs request for given URI object and HTTP request object.
-      def run_request_for(uri, http_request, refreshed_oauth = nil)
-        response = Net::HTTP.start(uri.hostname, self.port) { |http| http.request(http_request) }
-        LiveEditor::API::Response.new(response, refreshed_oauth)
+      def run_request_for(uri, request, options)
+        # Option defaults.
+        options[:authorize] = options.has_key?(:authorize) ? options[:authorize] : true
+        options[:json_api] = options.has_key?(:json_api) ? options[:json_api] : true
+
+        # Request access token if we're authorizing the request and none is set.
+        refreshed_oauth = if options[:authorize] && self.access_token.blank?
+          request_access_token!
+        elsif options[:refreshed_oauth].present?
+          options[:refreshed_oauth]
+        end
+
+        # Build request.
+        request['User-Agent'] = self.user_agent
+        request['Authorization'] = "Bearer #{self.access_token}" if options[:authorize]
+        request['Content-Type'] = 'application/vnd.api+json' if options[:json_api] && options[:payload].present?
+        request['Accept'] = 'application/vnd.api+json' if options[:json_api]
+        request.set_form_data(options[:form_data]) if options[:form_data].present?
+        request.body = options[:payload].to_json if options[:payload].present?
+
+        # Do request and return response.
+        http_response = Net::HTTP.start(uri.hostname, self.port) { |http| http.request(request) }
+        response = LiveEditor::API::Response.new(http_response, refreshed_oauth)
+
+        # If response was unauthorized, refresh access token and try one more
+        # time.
+        if response.unauthorized? && options[:authorize] && refreshed_oauth.blank?
+          token_refresh_data = request_access_token!
+          request['Authorization'] = "Bearer #{self.access_token}"
+          run_request_for(uri, request, refreshed_oauth: token_refresh_data)
+        # Otherwise, return response as-is.
+        else
+          response
+        end
       end
     end
   end
