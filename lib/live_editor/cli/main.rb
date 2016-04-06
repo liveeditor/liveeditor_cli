@@ -308,6 +308,63 @@ module LiveEditor
           if response.refreshed_oauth?
             LiveEditor::CLI::store_credentials(client.domain, client.email, client.access_token, client.refresh_token)
           end
+
+          # Successful response: process regions
+          if response.success?
+            # Grab regions from server.
+            response_body = response.parsed_body
+
+            server_regions = if response_body.has_key?('included')
+              response_body['included'].select { |data| data['type'] == 'regions' }
+            else
+              []
+            end
+
+            # Grab regions from layout config.
+            regions_config = config_entry['regions'] || []
+
+            # Loop through regions from server and "fill in the blanks" with matching config.
+            server_regions.each do |server_region|
+              region_config = regions_config.select do |config|
+                config['title'] == server_region['attributes']['title']
+              end
+
+              if region_config.any?
+                region_config = region_config.first
+                region_attrs = {}
+
+                if region_config['var_name'].present? && region_config['var_name'] != server_region['var_name']
+                  region_attrs['var_name'] = region_config['var_name']
+                end
+
+                if region_config['description'] != server_region['description']
+                  region_attrs['description'] = region_config['description']
+                end
+
+                if region_config['max_num_content'] != server_region['max_num_content']
+                  region_attrs['max_num_content'] = region_config['max_num_content']
+                end
+
+                # Only update if there are updates to send.
+                unless region_attrs.empty?
+                  layout_id = response_body['data']['id']
+                  region_id = server_region['id']
+                  region_response = LiveEditor::API::Themes::Region.update(layout_id, region_id, region_attrs)
+
+                  # Store new credentials if access token was refreshed.
+                  # TODO: Refactor this because it gets repeated.
+                  if region_response.refreshed_oauth?
+                    LiveEditor::CLI::store_credentials(client.domain, client.email, client.access_token, client.refresh_token)
+                  end
+                end
+              end
+            end
+          # Error: abort
+          else
+            # TODO: Report actual errors
+            say('ERROR: Unable to process layouts.', :red)
+            return
+          end
         end
 
       rescue LiveEditor::API::OAuthRefreshError => e

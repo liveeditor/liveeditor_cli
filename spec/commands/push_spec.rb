@@ -59,9 +59,91 @@ RSpec.describe LiveEditor::CLI::Main do
         end
       end
 
+      let(:response_payload) do
+        {
+          'data' => {
+            'type' => 'layouts',
+            'id' => '1234',
+            'attributes' => {
+              'title' => 'Site'
+            }
+          }
+        }
+      end
+
       it 'uploads the layout content' do
         stub_request(:post, "http://example.api.liveeditorapp.com/themes/layouts")
-          .to_return(status: 201)
+          .to_return(status: 201, body: response_payload.to_json, headers: { 'Content-Type' => 'application/vnd.json+api' } )
+
+        output = capture(:stdout) { subject.push }
+        expect(output).to include 'Uploading layouts...'
+        expect(output).to include '/layouts/site_layout.liquid'
+        expect(output).to_not include 'ERROR'
+      end
+    end
+
+    context 'logged in with layout and region' do
+      include_context 'minimal valid theme', false
+      include_context 'within theme root'
+      include_context 'logged in'
+      include_context 'with layout Liquid template', 'site'
+
+      before do
+        File.open(theme_root + '/layouts/layouts.json', 'w') do |f|
+          f.write JSON.generate({
+            layouts: [
+              {
+                title: 'Site',
+                regions: [
+                  {
+                    title: 'Main',
+                    var_name: 'the-main'
+                  }
+                ]
+              }
+            ]
+          })
+        end
+      end
+
+      let(:response_payload) do
+        {
+          'data' => {
+            'type' => 'layouts',
+            'id' => '1234',
+            'attributes' => {
+              'title' => 'Site'
+            },
+            'relationships' => {
+              'regions' => {
+                'data' => [
+                  {
+                    'type' => 'regions',
+                    'id' => '1235'
+                  }
+                ]
+              }
+            }
+          },
+          'included' => [
+            {
+              'type' => 'regions',
+              'id' => '1235',
+              'attributes' => {
+                'title' => 'Main',
+                'var-name' => 'the-main'
+              }
+            }
+          ]
+        }
+      end
+
+      it 'uploads the layout content' do
+        stub_request(:post, 'http://example.api.liveeditorapp.com/themes/layouts')
+          .to_return(status: 201, body: response_payload.to_json, headers: { 'Content-Type' => 'application/vnd.json+api' } )
+
+        stub_request(:patch, 'http://example.api.liveeditorapp.com/themes/layouts/1234/regions/1235')
+          .to_return(status: 200)
 
         output = capture(:stdout) { subject.push }
         expect(output).to include 'Uploading layouts...'
