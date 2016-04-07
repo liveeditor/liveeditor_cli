@@ -150,7 +150,92 @@ RSpec.describe LiveEditor::CLI::Main do
         expect(output).to include '/layouts/site_layout.liquid'
         expect(output).to_not include 'ERROR'
       end
-    end
+    end # logged in with layout and region
+
+    context 'logged in with layout and region with validation error' do
+      include_context 'minimal valid theme', false
+      include_context 'within theme root'
+      include_context 'logged in'
+      include_context 'with layout Liquid template', 'site'
+
+      before do
+        File.open(theme_root + '/layouts/layouts.json', 'w') do |f|
+          f.write JSON.generate({
+            layouts: [
+              {
+                title: 'Site',
+                regions: [
+                  {
+                    title: 'Main',
+                    var_name: 'the_main'
+                  }
+                ]
+              }
+            ]
+          })
+        end
+      end
+
+      let(:layout_response_payload) do
+        {
+          'data' => {
+            'type' => 'layouts',
+            'id' => '1234',
+            'attributes' => {
+              'title' => 'Site'
+            },
+            'relationships' => {
+              'regions' => {
+                'data' => [
+                  {
+                    'type' => 'regions',
+                    'id' => '1235'
+                  }
+                ]
+              }
+            }
+          },
+          'included' => [
+            {
+              'type' => 'regions',
+              'id' => '1235',
+              'attributes' => {
+                'title' => 'Main',
+                'var-name' => 'the_main'
+              }
+            }
+          ]
+        }
+      end
+
+      let(:region_response_payload) do
+        {
+          'errors' => [
+            {
+              'detail' => 'has already been taken',
+              'source' => {
+                'pointer' => '/data/attributes/var-name'
+              }
+            }
+          ]
+        }
+      end
+
+      it 'aborts with an error' do
+        stub_request(:post, 'http://example.api.liveeditorapp.com/themes/layouts')
+          .to_return(status: 201, body: layout_response_payload.to_json,
+                     headers: { 'Content-Type' => 'application/vnd.api+json' } )
+
+        stub_request(:patch, 'http://example.api.liveeditorapp.com/themes/layouts/1234/regions/1235')
+          .to_return(status: 422, body: region_response_payload.to_json,
+                     headers: { 'Content-Type' => 'application/vnd.api+json' })
+
+        output = capture(:stdout) { subject.push }
+        expect(output).to include 'Uploading layouts...'
+        expect(output).to include '/layouts/site_layout.liquid'
+        expect(output).to include 'ERROR: Region `var_name` `the_main` has already been taken'
+      end
+    end # logged in with layout and region with validation error
 
     context 'outside of theme root', fakefs: true do
       include_context 'outside of theme root'

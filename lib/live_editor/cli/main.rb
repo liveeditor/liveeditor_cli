@@ -351,6 +351,16 @@ module LiveEditor
                   region_id = server_region['id']
                   region_response = LiveEditor::API::Themes::Region.update(layout_id, region_id, region_attrs)
 
+                  # Report error and exit if request failed.
+                  if region_response.error?
+                    region_response.errors.each do |key, value|
+                      key = key.underscore
+                      say("ERROR: Region `#{key}` `#{region_attrs[key]}` #{value.first}", :red)
+                    end
+
+                    return
+                  end
+
                   # Store new credentials if access token was refreshed.
                   # TODO: Refactor this because it gets repeated.
                   if region_response.refreshed_oauth?
