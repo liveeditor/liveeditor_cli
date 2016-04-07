@@ -79,7 +79,7 @@ RSpec.describe LiveEditor::API::Themes::Region do
           'errors' => [
             {
               'source' => {
-                'pointer' => '/data/attributes/bananas'
+                'pointer' => '/data/attributes/max-num-content'
               },
               'detail' => 'is not a number'
             }
@@ -102,7 +102,9 @@ RSpec.describe LiveEditor::API::Themes::Region do
       end
 
       it 'returns the expected response payload' do
-        expect(response.errors).to eql response_payload['errors']
+        expect(response.errors).to eql({
+          'max-num-content' => ['is not a number']
+        })
       end
     end # with invalid input
   end # .update
