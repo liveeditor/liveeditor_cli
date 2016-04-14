@@ -7,7 +7,8 @@ module LiveEditor
         # Required arguments:
         #
         # -  `title` - Title of layout.
-        # -  `file_name` - Name of layout file. For example: `home.liquid`.
+        # -  `file_name` - Name of layout file. For example:
+        #    `home_layout.liquid`.
         # -  `content` - Contents of layout.
         #
         # Optional attributes:

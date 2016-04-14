@@ -1,7 +1,7 @@
 require 'spec_helper'
 
 RSpec.describe LiveEditor::API::Themes::Region do
-  let(:client)   { LiveEditor::API::Client.new(domain: 'example.liveeditorapp.com', access_token: '1234567890', refresh_token: '0987654321') }
+  let(:client) { LiveEditor::API::Client.new(domain: 'example.liveeditorapp.com', access_token: '1234567890', refresh_token: '0987654321') }
   before { LiveEditor::API::client = client }
 
   describe '.update' do
