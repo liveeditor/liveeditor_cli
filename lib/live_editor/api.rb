@@ -5,6 +5,7 @@ require 'live_editor/api/themes/assets/upload'
 require 'live_editor/api/themes/partial'
 require 'live_editor/api/themes/layout'
 require 'live_editor/api/themes/region'
+require 'live_editor/api/themes/content_template'
 
 module LiveEditor
   module API
