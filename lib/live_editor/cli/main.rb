@@ -246,12 +246,9 @@ module LiveEditor
           response = nil # Scope this outside of the File.open block below so we can access it aferward.
 
           File.open(file) do |file_to_upload|
-            response = LiveEditor::API::Themes::Assets::Upload.create(file_to_upload, filename, content_type)
-          end
-
-          # Store new credentials if access token was refreshed.
-          if response.refreshed_oauth?
-            LiveEditor::CLI::store_credentials(client.domain, client.email, client.access_token, client.refresh_token)
+            LiveEditor::CLI::request do
+              LiveEditor::API::Themes::Assets::Upload.create(file_to_upload, filename, content_type)
+            end
           end
         end
         say ''
@@ -267,12 +264,9 @@ module LiveEditor
           response = nil # Scope this outside of the File.open block below so we can access it aferward.
 
           File.open(file) do |file_to_upload|
-            response = LiveEditor::API::Themes::Partial.create(filename, file_to_upload.read)
-          end
-
-          # Store new credentials if access token was refreshed.
-          if response.refreshed_oauth?
-            LiveEditor::CLI::store_credentials(client.domain, client.email, client.access_token, client.refresh_token)
+            LiveEditor::CLI::request do
+              LiveEditor::API::Themes::Partial.create(filename, file_to_upload.read)
+            end
           end
         end
         say ''
@@ -299,14 +293,11 @@ module LiveEditor
           response = nil # Scope this outside of the File.open block below so we can access it aferward.
 
           File.open(file) do |file_to_upload|
-            response = LiveEditor::API::Themes::Layout.create config_entry['title'], filename, file_to_upload.read,
-                                                              description: config_entry['description'],
-                                                              unique: config_entry['unique']
-          end
-
-          # Store new credentials if access token was refreshed.
-          if response.refreshed_oauth?
-            LiveEditor::CLI::store_credentials(client.domain, client.email, client.access_token, client.refresh_token)
+            response = LiveEditor::CLI::request do
+              LiveEditor::API::Themes::Layout.create config_entry['title'], filename, file_to_upload.read,
+                                                     description: config_entry['description'],
+                                                     unique: config_entry['unique']
+            end
           end
 
           # Successful response: process regions
@@ -349,7 +340,10 @@ module LiveEditor
                 unless region_attrs.empty?
                   layout_id = response_body['data']['id']
                   region_id = server_region['id']
-                  region_response = LiveEditor::API::Themes::Region.update(layout_id, region_id, region_attrs)
+
+                  region_response = LiveEditor::CLI::request do
+                    LiveEditor::API::Themes::Region.update(layout_id, region_id, region_attrs)
+                  end
 
                   # Report error and exit if request failed.
                   if region_response.error?
@@ -359,12 +353,6 @@ module LiveEditor
                     end
 
                     return
-                  end
-
-                  # Store new credentials if access token was refreshed.
-                  # TODO: Refactor this because it gets repeated.
-                  if region_response.refreshed_oauth?
-                    LiveEditor::CLI::store_credentials(client.domain, client.email, client.access_token, client.refresh_token)
                   end
                 end
               end

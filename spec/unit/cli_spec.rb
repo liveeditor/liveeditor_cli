@@ -94,4 +94,77 @@ RSpec.describe LiveEditor::CLI, fakefs: true do
       end
     end
   end
+
+  describe '.request' do
+    let!(:netrc_before) do
+<<-NETRC
+machine example.liveeditorapp.com
+  login test@example.com
+  password 1234567890|0987654321
+NETRC
+    end
+
+    let(:client) do
+      LiveEditor::API::Client.new domain: 'example.liveeditorapp.com', email: 'test@example.com',
+                                  access_token: '1234567890', refresh_token: '0987654321'
+    end
+
+    let(:response) do
+      LiveEditor::CLI::request do
+        LiveEditor::API::Themes::Layout.create('Product', 'product_layout.liquid', '<html></html>')
+      end
+    end
+
+    before do
+      LiveEditor::API::client = client
+      LiveEditor::CLI::store_credentials('example.liveeditorapp.com', 'test@example.com', '1234567890', '0987654321')
+      File.chmod(0600, Netrc.default_path)
+    end
+
+    context 'with refreshed credentials' do
+      let(:new_netrc) do
+<<-NETRC
+machine example.liveeditorapp.com
+  login test@example.com
+  password 0987654321|1234567890
+NETRC
+      end
+
+      before do
+        # First call to endpoint is unsuccessful.
+        stub_request(:post, 'http://example.api.liveeditorapp.com/themes/layouts')
+          .with(headers: { 'Authorization' => 'Bearer 1234567890' })
+          .to_return(status: 401, headers: { 'Content-Type' => 'application/json' }, body: { error: 'Unauthorized request' }.to_json)
+
+        # Auto-refresh of OAuth token when first try to an endpoint returns
+        # unauthorized.
+        stub_request(:post, 'http://example.api.liveeditorapp.com/oauth/token')
+          .to_return(status: 200, body: { access_token: '0987654321', refresh_token: '1234567890' }.to_json)
+
+        # Second call to endpoint is successful.
+        stub_request(:post, 'http://example.api.liveeditorapp.com/themes/layouts')
+          .with(headers: { 'Authorization' => 'Bearer 0987654321' })
+          .to_return(status: 201, headers: { 'Content-Type' => 'application/vnd.api+json'}, body: { data: {} }.to_json)
+
+        response
+      end
+
+      it 'changes the `.netrc` file' do
+        expect(File.read(Netrc.default_path)).to eql new_netrc
+      end
+    end
+
+    context 'without refreshed credentials' do
+      before do
+        stub_request(:post, 'http://example.api.liveeditorapp.com/themes/layouts')
+          .to_return(status: 201, headers: { 'Content-Type' => 'application/vnd.api+json'}, body: { data: {} }.to_json)
+
+        response
+      end
+
+      it 'does not change the `.netrc` file' do
+        expect(File.read(Netrc.default_path)).to eql netrc_before
+      end
+    end
+  end
 end

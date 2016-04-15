@@ -27,14 +27,6 @@ module LiveEditor
       end
     end
 
-    # Stores login and password for a given admin domain.
-    def self.store_credentials(admin_domain, email, access_token, refresh_token)
-      n = Netrc.read
-      password = [access_token, refresh_token].join('|')
-      n[admin_domain] = email, password
-      n.save
-    end
-
     # Returns a hash with 2 values for the `title`:
     #
     # 1. `title` is the titleized version. Ex. 'My Theme'
@@ -51,6 +43,29 @@ module LiveEditor
     def self.read_config!
       theme_root = LiveEditor::CLI::theme_root_dir!
       JSON.parse(File.read(theme_root + '/config.json'))
+    end
+
+    # Most requests to the API should be run as a block through this method.
+    #
+    # If the response refreshes the OAuth credentials, this method will handle
+    # storing the new credentials for future use.
+    def self.request
+      response = yield
+
+      if response.refreshed_oauth?
+        client = LiveEditor::API::client
+        store_credentials(client.domain, client.email, client.access_token, client.refresh_token)
+      end
+
+      response
+    end
+
+    # Stores login and password for a given admin domain.
+    def self.store_credentials(admin_domain, email, access_token, refresh_token)
+      n = Netrc.read
+      password = [access_token, refresh_token].join('|')
+      n[admin_domain] = email, password
+      n.save
     end
 
     # Returns path to root folder for this theme. This allows the user to run
