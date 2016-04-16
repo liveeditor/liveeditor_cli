@@ -271,6 +271,49 @@ module LiveEditor
         end
         say ''
 
+        # Upload content templates.
+        # templates_folder_loc = theme_root + '/content_templates'
+        # templates_config_loc = templates_folder_loc + '/content_templates.json'
+        #
+        # if File.exist?(templates_folder_loc) && File.exist?(templates_config_loc)
+        #   say 'Uploading content templates...'
+        #   content_templates_config = File.read(templates_config_loc)
+        #   content_templates_config = JSON.parse(content_templates_config)
+        #
+        #   response = nil # Scope this outside of File.open blocks so we can access it aferward.
+        #
+        #   content_templates_config['content_templates'].each do |content_template_config|
+        #     # Create base content template record via API.
+        #     response = LiveEditor::CLI::request do
+        #       LiveEditor::API::Themes::ContentTemplate.create content_template_config['title'],
+        #         var_name: content_template_config['var_name'],
+        #         folder_name: content_template_config['folder_name'],
+        #         description: content_template_config['description'],
+        #         unique: content_template_config['unique'],
+        #         icon_title: content_template_config['icon_title']
+        #     end
+        #
+        #     # Name of folder containing display files.
+        #     folder_name = if content_template_config['folder_name'].present?
+        #       content_template_config['folder_name']
+        #     elsif content_template_config['var_name'].present?
+        #       content_template_config['var_name']
+        #     else
+        #       naming = LiveEditor::CLI::naming_for(content_template_config['title'])
+        #       naming[:var_name]
+        #     end
+        #
+        #     content_template_config['displays'].each do |display_config|
+        #       # Create display record via API.
+        #       response = LiveEditor::CLI::request do
+        #         LiveEditor::API::Themes::Display.create display_config['title'],
+        #           description: display_config['description'],
+        #           file_name: display_config['file_name']
+        #       end
+        #     end
+        #   end
+        # end
+
         # Upload layouts.
         say 'Uploading layouts...'
         layouts_config = File.read(theme_root + '/layouts/layouts.json')

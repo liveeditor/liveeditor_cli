@@ -6,6 +6,7 @@ require 'live_editor/api/themes/partial'
 require 'live_editor/api/themes/layout'
 require 'live_editor/api/themes/region'
 require 'live_editor/api/themes/content_template'
+require 'live_editor/api/themes/block'
 
 module LiveEditor
   module API
