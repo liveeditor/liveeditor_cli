@@ -10,8 +10,8 @@ module LiveEditor
 
         SENSIBLE_DEFAULT = "application/octet-stream"
 
-        def initialize(filename)
-          @filename = filename
+        def initialize(file_name)
+          @file_name = file_name
         end
 
         def detect
@@ -23,7 +23,7 @@ module LiveEditor
         def type_from_file_command
           # On BSDs, `file` doesn't give a result code of 1 if the file doesn't exist.
           type = begin
-            Cocaine::CommandLine.new("file", "-b --mime :file").run(file: @filename)
+            Cocaine::CommandLine.new("file", "-b --mime :file").run(file: @file_name)
           rescue Cocaine::CommandLineError => e
             puts "Error while determining content type: #{e}"
             SENSIBLE_DEFAULT

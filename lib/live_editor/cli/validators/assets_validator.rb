@@ -22,15 +22,15 @@ module LiveEditor
           # Look for source files that probably shouldn't be published to the
           # CDN.
           Dir[assets_folder_loc + '/*/**'].each do |file|
-            filename = file.split('/').last
-            extension = filename.split('.').size > 1 ? filename.split('.').last : nil
+            file_name = file.split('/').last
+            extension = file_name.split('.').size > 1 ? file_name.split('.').last : nil
 
             if extension.present? && SOURCE_EXTENSIONS.include?(extension)
-              filename = file.sub(assets_folder_loc, '/assets')
+              file_name = file.sub(assets_folder_loc, '/assets')
 
               self.messages << {
                 type: :warning,
-                message: "The file at `/#{filename}` is a source file. In most cases, we recommend moving this outside of the `/assets` folder."
+                message: "The file at `/#{file_name}` is a source file. In most cases, we recommend moving this outside of the `/assets` folder."
               }
             end
           end

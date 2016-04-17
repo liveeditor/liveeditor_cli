@@ -69,7 +69,7 @@ RSpec.describe LiveEditor::CLI::Validators::ContentTemplatesValidator, fakefs: t
                 {
                   title: 'Default',
                   description: "Display's description.",
-                  filename: 'the_default'
+                  file_name: 'the_default'
                 }
               ]
             }

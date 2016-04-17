@@ -66,15 +66,15 @@ module LiveEditor
                 }
               end
 
-              # Filename must have matching liquid file.
-              if layout_config['title'].present? || layout_config['filename'].present?
-                filename = layout_config['filename'] ? layout_config['filename'] : LiveEditor::CLI::naming_for(layout_config['title'])[:var_name]
-                filename += '_layout.liquid'
+              # File name must have matching liquid file.
+              if layout_config['title'].present? || layout_config['file_name'].present?
+                file_name = layout_config['file_name'] ? layout_config['file_name'] : LiveEditor::CLI::naming_for(layout_config['title'])[:var_name]
+                file_name += '_layout.liquid'
 
-                unless File.exist?(layouts_folder_loc + '/' + filename)
+                unless File.exist?(layouts_folder_loc + '/' + file_name)
                   self.messages << {
                     type: :error,
-                    message: "The layout in position #{index + 1} is missing its matching Liquid template: `#{filename}`."
+                    message: "The layout in position #{index + 1} is missing its matching Liquid template: `#{file_name}`."
                   }
                 end
               end

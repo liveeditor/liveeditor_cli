@@ -57,15 +57,15 @@ module LiveEditor
             end
 
             # Matching Liquid template must exist.
-            filename = nav_config['filename'] || nav_config['var_name'] || LiveEditor::CLI::naming_for(nav_config['title'])[:var_name]
+            file_name = nav_config['file_name'] || nav_config['var_name'] || LiveEditor::CLI::naming_for(nav_config['title'])[:var_name]
 
-            if filename.present?
-              filename += '_navigation.liquid'
+            if file_name.present?
+              file_name += '_navigation.liquid'
 
-              unless File.exist?(nav_folder_loc + '/' + filename)
+              unless File.exist?(nav_folder_loc + '/' + file_name)
                 self.messages << {
                   type: :error,
-                  message: "The navigation menu in position #{index + 1} is missing its matching Liquid template: `/navigation/#{filename}`."
+                  message: "The navigation menu in position #{index + 1} is missing its matching Liquid template: `/navigation/#{file_name}`."
                 }
               end
             end

@@ -46,9 +46,9 @@ shared_context 'with layouts folder' do
   before { Dir.mkdir(theme_root + '/layouts') }
 end
 
-shared_context 'with layout Liquid template' do |filename|
+shared_context 'with layout Liquid template' do |file_name|
   before do
-    FileUtils.touch(theme_root + '/layouts/' + "#{filename}_layout.liquid")
+    FileUtils.touch(theme_root + '/layouts/' + "#{file_name}_layout.liquid")
   end
 end
 

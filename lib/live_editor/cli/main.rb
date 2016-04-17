@@ -239,15 +239,15 @@ module LiveEditor
         files = Dir.glob(theme_root + '/assets/**/*').reject { |file| File.directory?(file) }
 
         files.each do |file|
-          filename = file.sub(theme_root, '').sub('/assets/', '')
-          say('/assets/' + filename)
+          file_name = file.sub(theme_root, '').sub('/assets/', '')
+          say('/assets/' + file_name)
 
           content_type = LiveEditor::CLI::Uploads::ContentTypeDetector.new(file).detect
           response = nil # Scope this outside of the File.open block below so we can access it aferward.
 
           File.open(file) do |file_to_upload|
             LiveEditor::CLI::request do
-              LiveEditor::API::Themes::Assets::Upload.create(file_to_upload, filename, content_type)
+              LiveEditor::API::Themes::Assets::Upload.create(file_to_upload, file_name, content_type)
             end
           end
         end
@@ -258,14 +258,14 @@ module LiveEditor
         files = Dir.glob(theme_root + '/partials/**/*').reject { |file| File.directory?(file) }
 
         files.each do |file|
-          filename = file.sub(theme_root, '').sub('/partials/', '')
-          say('/partials/' + filename)
+          file_name = file.sub(theme_root, '').sub('/partials/', '')
+          say('/partials/' + file_name)
 
           response = nil # Scope this outside of the File.open block below so we can access it aferward.
 
           File.open(file) do |file_to_upload|
             LiveEditor::CLI::request do
-              LiveEditor::API::Themes::Partial.create(filename, file_to_upload.read)
+              LiveEditor::API::Themes::Partial.create(file_name, file_to_upload.read)
             end
           end
         end
@@ -324,20 +324,20 @@ module LiveEditor
         end
 
         files.each do |file|
-          filename = file.sub(theme_root, '').sub('/layouts/', '')
-          say('/layouts/' + filename)
+          file_name = file.sub(theme_root, '').sub('/layouts/', '')
+          say('/layouts/' + file_name)
 
           # Grab entry for layout from `layouts.config`.
           config_entry = layouts_config['layouts'].select do |config|
-            config['filename'] == filename.sub('_layout.liquid', '') ||
-              config['title'].underscore == filename.sub('_layout.liquid', '')
+            config['file_name'] == file_name.sub('_layout.liquid', '') ||
+              config['title'].underscore == file_name.sub('_layout.liquid', '')
           end.first
 
           response = nil # Scope this outside of the File.open block below so we can access it aferward.
 
           File.open(file) do |file_to_upload|
             response = LiveEditor::CLI::request do
-              LiveEditor::API::Themes::Layout.create config_entry['title'], filename, file_to_upload.read,
+              LiveEditor::API::Themes::Layout.create config_entry['title'], file_name, file_to_upload.read,
                                                      description: config_entry['description'],
                                                      unique: config_entry['unique']
             end

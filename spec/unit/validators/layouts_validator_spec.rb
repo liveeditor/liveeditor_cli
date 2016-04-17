@@ -55,7 +55,7 @@ RSpec.describe LiveEditor::CLI::Validators::LayoutsValidator, fakefs: true do
               title: 'My Layout',
               description: 'A description.',
               unique: true,
-              filename: 'something',
+              file_name: 'something',
               regions: [
                 {
                   title: 'Main',

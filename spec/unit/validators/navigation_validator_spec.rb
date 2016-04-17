@@ -53,7 +53,7 @@ RSpec.describe LiveEditor::CLI::Validators::NavigationValidator, fakefs: true do
               title: 'global',
               var_name: 'main',
               description: 'A description.',
-              filename: 'glob'
+              file_name: 'glob'
             }
           ]
         })

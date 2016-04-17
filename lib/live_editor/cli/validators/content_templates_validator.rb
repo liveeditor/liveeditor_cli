@@ -162,15 +162,15 @@ module LiveEditor
 
           # Matching file must be found within subfolder.
           folder_name = content_template['var_name'] || LiveEditor::CLI::naming_for(content_template['title'])[:var_name]
-          filename = display['filename'] || LiveEditor::CLI::naming_for(display['title'])[:var_name]
+          file_name = display['file_name'] || LiveEditor::CLI::naming_for(display['title'])[:var_name]
 
-          if folder_name.present? && filename.present?
-            filename += '_display.liquid'
+          if folder_name.present? && file_name.present?
+            file_name += '_display.liquid'
 
-            if !File.exist?(templates_folder_loc + '/' + folder_name + '/' + filename)
+            if !File.exist?(templates_folder_loc + '/' + folder_name + '/' + file_name)
               self.messages << {
                 type: :error,
-                message: "The content template in position #{content_template_index + 1}'s display in position #{display_index + 1} within the file at `/content_templates/content_templates.json` is missing its matching Liquid template at `/content_templates/#{folder_name}/#{filename}`."
+                message: "The content template in position #{content_template_index + 1}'s display in position #{display_index + 1} within the file at `/content_templates/content_templates.json` is missing its matching Liquid template at `/content_templates/#{folder_name}/#{file_name}`."
               }
             end
           end
