@@ -141,11 +141,22 @@ module LiveEditor
                   message: "The content template in position #{index + 1} is missing a matching folder at `content_templates/#{folder_name}`."
                 }
               end
-            end
 
-            # Validate each display.
-            content_template['displays'].each_with_index do |display_config, d_index|
-              validate_display(display_config, index, d_index, content_template, templates_folder_loc)
+              # In the following loop, count number of displays counted as default.
+              defaults_count = 0
+
+              # Validate each display.
+              content_template['displays'].each_with_index do |display_config, d_index|
+                validate_display(display_config, index, d_index, content_template, templates_folder_loc)
+                defaults_count += 1 if display_config['default'] == true
+              end
+
+              if defaults_count > 1
+                self.messages << {
+                  type: :error,
+                  message: "The content template in position #{index + 1} may only have 1 default display."
+                }
+              end
             end
           end
         end
