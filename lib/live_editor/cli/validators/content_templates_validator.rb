@@ -174,6 +174,14 @@ module LiveEditor
               }
             end
           end
+
+          # `default` must be a boolean.
+          if display['default'].present? && ![true, false].include?(display['default'])
+            self.messages << {
+              type: :error,
+              message: "The content template in position #{content_template_index + 1}'s display in position #{display_index + 1} within the file at `/content_templates/content_templates.json` does not have a valid boolean value for `default`."
+            }
+          end
         end
       end
     end

@@ -125,7 +125,7 @@ RSpec.describe LiveEditor::CLI::Validators::ContentTemplatesValidator, fakefs: t
     end
   end
 
-  context 'with no content_templates.json file' do
+  context 'with no `content_templates.json` file' do
     include_context 'basic theme'
     include_context 'within theme root'
     include_context 'with content_templates folder'
@@ -959,6 +959,63 @@ RSpec.describe LiveEditor::CLI::Validators::ContentTemplatesValidator, fakefs: t
     it 'has an #errors array with an error message' do
       validator.valid?
       expect(validator.errors.first[:message]).to eql "The content template in position 1's display in position 1 within the file at `/content_templates/content_templates.json` is missing its matching Liquid template at `/content_templates/article/default_display.liquid`."
+    end
+
+    it 'has no #warnings' do
+      validator.valid?
+      expect(validator.warnings).to eql []
+    end
+  end
+
+  context 'with non-boolean display `default` in `content_templates.json`' do
+    include_context 'basic theme'
+    include_context 'with content_templates folder'
+    include_context 'within theme root'
+
+    before do
+      File.open(theme_root + '/content_templates/content_templates.json', 'w') do |f|
+        f.write JSON.generate({
+          content_templates: [
+            {
+              title: 'My Content Template',
+              blocks: [],
+              displays: [
+                {
+                  title: 'Default',
+                  default: 'banana'
+                }
+              ]
+            }
+          ]
+        })
+      end
+
+      Dir.mkdir(theme_root + '/content_templates/my_content_template')
+      FileUtils.touch(theme_root + '/content_templates/my_content_template/default_display.liquid')
+    end
+
+    it 'is not #valid?' do
+      expect(validator.valid?).to eql false
+    end
+
+    it 'has a #messages array with an error' do
+      validator.valid?
+      expect(validator.messages.first[:type]).to eql :error
+    end
+
+    it 'has a #messages array with an error message' do
+      validator.valid?
+      expect(validator.messages.first[:message]).to eql "The content template in position 1's display in position 1 within the file at `/content_templates/content_templates.json` does not have a valid boolean value for `default`."
+    end
+
+    it 'has an #errors array with an error' do
+      validator.valid?
+      expect(validator.errors.first[:type]).to eql :error
+    end
+
+    it 'has an #errors array with an error message' do
+      validator.valid?
+      expect(validator.errors.first[:message]).to eql "The content template in position 1's display in position 1 within the file at `/content_templates/content_templates.json` does not have a valid boolean value for `default`."
     end
 
     it 'has no #warnings' do
