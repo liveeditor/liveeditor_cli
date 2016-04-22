@@ -80,7 +80,7 @@ RSpec.describe LiveEditor::CLI::Main do
         expect(output).to include '/layouts/site_layout.liquid'
         expect(output).to_not include 'ERROR'
       end
-    end
+    end # logged in with layout
 
     context 'logged in with layout and region' do
       include_context 'minimal valid theme', false
@@ -236,6 +236,54 @@ RSpec.describe LiveEditor::CLI::Main do
         expect(output).to include 'ERROR: Region `var_name` `the_main` has already been taken'
       end
     end # logged in with layout and region with validation error
+
+    context 'logged in with content template and display' do
+      include_context 'minimal valid theme', false
+      include_context 'within theme root'
+      include_context 'logged in'
+      include_context 'with content_templates.json'
+      include_context 'with display Liquid template', 'default'
+
+      let(:content_template_response_payload) do
+        {
+          'data' => {
+            'type' => 'content-templates',
+            'id' => '1234',
+            'attributes' => {
+              'title' => 'Article'
+            }
+          }
+        }
+      end
+
+      let (:display_response_payload) do
+        {
+          'data' => {
+            'type' => 'displays',
+            'id' => '1235',
+            'attributes' => {
+              'title' => 'Default',
+              'default' => true,
+              'content' => "<h1>{ 'title' | display_block }</h1>"
+            }
+          }
+        }
+      end
+
+      it 'uploads the content template' do
+        stub_request(:post, 'http://example.api.liveeditorapp.com/themes/content-templates')
+          .to_return(status: 201, body: content_template_response_payload.to_json, headers: { 'Content-Type' => 'application/vnd.json+api' } )
+
+        stub_request(:post, 'http://example.api.liveeditorapp.com/themes/content-templates/1234/displays')
+          .to_return(status: 200)
+
+        output = capture(:stdout) { subject.push }
+        expect(output).to include 'Uploading content templates...'
+        expect(output).to include 'Article'
+        expect(output).to include '/content_templates/article/default_display.liquid'
+        expect(output).to_not include 'ERROR'
+      end
+    end # logged in with content template and display
 
     context 'outside of theme root', fakefs: true do
       include_context 'outside of theme root'

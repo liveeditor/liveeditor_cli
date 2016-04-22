@@ -122,3 +122,46 @@ shared_context 'with partial' do
     end
   end
 end
+
+shared_context 'with content_templates.json' do
+  before do
+    Dir.mkdir(theme_root + '/content_templates')
+
+    File.open(theme_root + '/content_templates/content_templates.json', 'w') do |f|
+      f.write({
+        content_templates: []
+      }.to_json)
+    end
+  end
+end
+
+shared_context 'with display Liquid template' do
+  before do
+    json = File.read(theme_root + '/content_templates/content_templates.json')
+    json = JSON.parse(json)
+
+    json['content_templates'] << {
+      title: 'Article',
+      displays: [
+        {
+          title: 'Default',
+          default: true
+        }
+      ]
+    }
+
+    File.open(theme_root + '/content_templates/content_templates.json', 'w') do |f|
+      f.write json.to_json
+    end
+
+    Dir.mkdir(theme_root + '/content_templates/article')
+
+    content = <<-LIQUID
+      <h1>{ 'title' | display_block }</h1>
+    LIQUID
+
+    File.open(theme_root + '/content_templates/article/default_display.liquid', 'w') do |f|
+      f.write content.strip
+    end
+  end
+end

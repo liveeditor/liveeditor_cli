@@ -254,65 +254,81 @@ module LiveEditor
         say ''
 
         # Upload partials.
-        say 'Uploading partials...'
         files = Dir.glob(theme_root + '/partials/**/*').reject { |file| File.directory?(file) }
 
-        files.each do |file|
-          file_name = file.sub(theme_root, '').sub('/partials/', '')
-          say('/partials/' + file_name)
+        if files.any?
+          say 'Uploading partials...'
+          files.each do |file|
+            file_name = file.sub(theme_root, '').sub('/partials/', '')
+            say('/partials/' + file_name)
 
-          response = nil # Scope this outside of the File.open block below so we can access it aferward.
+            response = nil # Scope this outside of the File.open block below so we can access it aferward.
 
-          File.open(file) do |file_to_upload|
-            LiveEditor::CLI::request do
-              LiveEditor::API::Themes::Partial.create(file_name, file_to_upload.read)
+            File.open(file) do |file_to_upload|
+              LiveEditor::CLI::request do
+                LiveEditor::API::Themes::Partial.create(file_name, file_to_upload.read)
+              end
+            end
+          end
+
+          say ''
+        end
+
+        # Upload content templates.
+        templates_folder_loc = theme_root + '/content_templates'
+        templates_config_loc = templates_folder_loc + '/content_templates.json'
+
+        if File.exist?(templates_folder_loc) && File.exist?(templates_config_loc)
+          say 'Uploading content templates...'
+          content_templates_config = File.read(templates_config_loc)
+          content_templates_config = JSON.parse(content_templates_config)
+
+          content_templates_config['content_templates'].each do |content_template_config|
+            say(content_template_config['title'])
+
+            # Create base content template record via API.
+            response = LiveEditor::CLI::request do
+              LiveEditor::API::Themes::ContentTemplate.create content_template_config['title'],
+                var_name: content_template_config['var_name'],
+                folder_name: content_template_config['folder_name'],
+                description: content_template_config['description'],
+                unique: content_template_config['unique'],
+                icon_title: content_template_config['icon_title']
+            end
+
+            # Name of folder containing display files.
+            folder_name = if content_template_config['folder_name'].present?
+              content_template_config['folder_name']
+            elsif content_template_config['var_name'].present?
+              content_template_config['var_name']
+            else
+              naming = LiveEditor::CLI::naming_for(content_template_config['title'])
+              naming[:var_name]
+            end
+
+            content_template_config['displays'].each_with_index do |display_config, index|
+              file_name = if display_config['file_name'].present?
+                display_config['file_name']
+              else
+                LiveEditor::CLI::naming_for(display_config['title'])[:var_name] + '_display.liquid'
+              end
+
+              file = "#{templates_folder_loc}/#{folder_name}/#{file_name}"
+              say "/content_templates/#{folder_name}/#{file_name}"
+
+              # Create display record via API.
+              File.open(file) do |file_to_upload|
+                LiveEditor::CLI::request do
+                  LiveEditor::API::Themes::Display.create response.parsed_body['data']['id'], display_config['title'],
+                    file_to_upload.read, index,
+                    description: display_config['description'],
+                    file_name: display_config['file_name']
+                end
+              end
             end
           end
         end
         say ''
-
-        # Upload content templates.
-        # templates_folder_loc = theme_root + '/content_templates'
-        # templates_config_loc = templates_folder_loc + '/content_templates.json'
-        #
-        # if File.exist?(templates_folder_loc) && File.exist?(templates_config_loc)
-        #   say 'Uploading content templates...'
-        #   content_templates_config = File.read(templates_config_loc)
-        #   content_templates_config = JSON.parse(content_templates_config)
-        #
-        #   response = nil # Scope this outside of File.open blocks so we can access it aferward.
-        #
-        #   content_templates_config['content_templates'].each do |content_template_config|
-        #     # Create base content template record via API.
-        #     response = LiveEditor::CLI::request do
-        #       LiveEditor::API::Themes::ContentTemplate.create content_template_config['title'],
-        #         var_name: content_template_config['var_name'],
-        #         folder_name: content_template_config['folder_name'],
-        #         description: content_template_config['description'],
-        #         unique: content_template_config['unique'],
-        #         icon_title: content_template_config['icon_title']
-        #     end
-        #
-        #     # Name of folder containing display files.
-        #     folder_name = if content_template_config['folder_name'].present?
-        #       content_template_config['folder_name']
-        #     elsif content_template_config['var_name'].present?
-        #       content_template_config['var_name']
-        #     else
-        #       naming = LiveEditor::CLI::naming_for(content_template_config['title'])
-        #       naming[:var_name]
-        #     end
-        #
-        #     content_template_config['displays'].each do |display_config|
-        #       # Create display record via API.
-        #       response = LiveEditor::CLI::request do
-        #         LiveEditor::API::Themes::Display.create display_config['title'],
-        #           description: display_config['description'],
-        #           file_name: display_config['file_name']
-        #       end
-        #     end
-        #   end
-        # end
 
         # Upload layouts.
         say 'Uploading layouts...'
