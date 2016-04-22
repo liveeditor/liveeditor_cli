@@ -66,11 +66,11 @@ module LiveEditor
             }
           end
 
-          # Type is required.
-          if block['type'].blank?
+          # Data type is required.
+          if block['data_type'].blank?
             self.messages << {
               type: :error,
-              message: "The content template in position #{content_template_index + 1}'s block in position #{block_index + 1} within the file at `/content_templates/content_templates.json` does not have a valid `type`."
+              message: "The content template in position #{content_template_index + 1}'s block in position #{block_index + 1} within the file at `/content_templates/content_templates.json` does not have a valid `data_type`."
             }
           end
 

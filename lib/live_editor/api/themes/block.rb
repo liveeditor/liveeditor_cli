@@ -12,6 +12,7 @@ module LiveEditor
         #    in the admin interface.
         # -  `data_type` - Type of data that the block will record. Valid values
         #    are `text`, `image`, `video`, `audio`, `file`, and `link`.
+        # -  `position` - Order in which to display this block in the editor.
         #
         # Optional attributes:
         # -  `var_name` - Variable name used to reference this block in display
@@ -26,7 +27,7 @@ module LiveEditor
         #    be able to mark up this text within predefined block-level elements
         #    in your display templates, but with the ability for content authors
         #    to still use inline-formatting tags like `<strong>` and `<em>`.
-        def self.create(content_template_id, title, data_type, attributes = {})
+        def self.create(content_template_id, title, data_type, position, attributes = {})
           attributes[:required] ||= false
           attributes[:inline] ||= false
 
@@ -36,6 +37,7 @@ module LiveEditor
               attributes: {
                 'title' => title,
                 'data-type' => data_type,
+                'position' => position,
                 'var-name' => attributes[:var_name],
                 'description' => attributes[:description],
                 'required' => attributes[:required],

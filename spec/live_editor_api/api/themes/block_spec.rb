@@ -11,7 +11,7 @@ RSpec.describe LiveEditor::API::Themes::Block do
   describe '.create' do
     context 'with valid input' do
       let(:response) do
-        subject.class.create 1234, 'Title', 'text', var_name: 'title_1', description: 'A description.',
+        subject.class.create 1234, 'Title', 'text', 0, var_name: 'title_1', description: 'A description.',
                              required: true, inline: true
       end
 
@@ -22,6 +22,7 @@ RSpec.describe LiveEditor::API::Themes::Block do
             attributes: {
               'title' => 'Title',
               'data-type' => 'text',
+              'position' => 0,
               'var-name' => 'title_1',
               'description' => 'A description.',
               'required' => true,
@@ -39,6 +40,7 @@ RSpec.describe LiveEditor::API::Themes::Block do
             'attributes' => {
               'title' => 'Title',
               'data-type' => 'text',
+              'position' => 0,
               'var-name' => 'title_1',
               'description' => 'A description.',
               'required' => true,
@@ -69,7 +71,7 @@ RSpec.describe LiveEditor::API::Themes::Block do
 
     context 'with invalid input' do
       let(:response) do
-        subject.class.create 1234, '', 'text', var_name: 'title_1', description: 'A description.', required: true,
+        subject.class.create 1234, '', 'text', 0, var_name: 'title_1', description: 'A description.', required: true,
                              inline: true
       end
 
@@ -80,6 +82,7 @@ RSpec.describe LiveEditor::API::Themes::Block do
             attributes: {
               'title' => '',
               'data-type' => 'text',
+              'position' => 0,
               'var-name' => 'title_1',
               'description' => 'A description.',
               'required' => true,

@@ -59,7 +59,7 @@ RSpec.describe LiveEditor::CLI::Validators::ContentTemplatesValidator, fakefs: t
                 {
                   title: 'Title',
                   var_name: 'another_var_name',
-                  type: 'text',
+                  data_type: 'text',
                   description: "Block's description.",
                   required: false,
                   inline: false
@@ -435,7 +435,7 @@ RSpec.describe LiveEditor::CLI::Validators::ContentTemplatesValidator, fakefs: t
               title: 'Blog Post',
               blocks: {
                 title: 'Title',
-                type: 'text'
+                data_type: 'text'
               }
             }
           ]
@@ -486,7 +486,7 @@ RSpec.describe LiveEditor::CLI::Validators::ContentTemplatesValidator, fakefs: t
               title: 'My Theme',
               blocks: [
                 {
-                  type: 'text'
+                  data_type: 'text'
                 }
               ]
             }
@@ -539,7 +539,7 @@ RSpec.describe LiveEditor::CLI::Validators::ContentTemplatesValidator, fakefs: t
               blocks: [
                 {
                   title: '',
-                  type: 'text'
+                  data_type: 'text'
                 }
               ]
             }
@@ -578,7 +578,7 @@ RSpec.describe LiveEditor::CLI::Validators::ContentTemplatesValidator, fakefs: t
     end
   end
 
-  context 'with missing block `type` in `content_templates.json`' do
+  context 'with missing block `data_type` in `content_templates.json`' do
     include_context 'basic theme'
     include_context 'with content_templates folder'
     include_context 'within theme root'
@@ -611,7 +611,7 @@ RSpec.describe LiveEditor::CLI::Validators::ContentTemplatesValidator, fakefs: t
 
     it 'has a #messages array with an error message' do
       validator.valid?
-      expect(validator.messages.first[:message]).to eql "The content template in position 1's block in position 1 within the file at `/content_templates/content_templates.json` does not have a valid `type`."
+      expect(validator.messages.first[:message]).to eql "The content template in position 1's block in position 1 within the file at `/content_templates/content_templates.json` does not have a valid `data_type`."
     end
 
     it 'has an #errors array with an error' do
@@ -621,7 +621,7 @@ RSpec.describe LiveEditor::CLI::Validators::ContentTemplatesValidator, fakefs: t
 
     it 'has an #errors array with an error message' do
       validator.valid?
-      expect(validator.errors.first[:message]).to eql "The content template in position 1's block in position 1 within the file at `/content_templates/content_templates.json` does not have a valid `type`."
+      expect(validator.errors.first[:message]).to eql "The content template in position 1's block in position 1 within the file at `/content_templates/content_templates.json` does not have a valid `data_type`."
     end
 
     it 'has no #warnings' do
@@ -630,7 +630,7 @@ RSpec.describe LiveEditor::CLI::Validators::ContentTemplatesValidator, fakefs: t
     end
   end
 
-  context 'with blank block `type` in `content_templates.json`' do
+  context 'with blank block `data_type` in `content_templates.json`' do
     include_context 'basic theme'
     include_context 'with content_templates folder'
     include_context 'within theme root'
@@ -644,7 +644,7 @@ RSpec.describe LiveEditor::CLI::Validators::ContentTemplatesValidator, fakefs: t
               blocks: [
                 {
                   title: 'My Block',
-                  type: ''
+                  data_type: ''
                 }
               ]
             }
@@ -664,7 +664,7 @@ RSpec.describe LiveEditor::CLI::Validators::ContentTemplatesValidator, fakefs: t
 
     it 'has a #messages array with an error message' do
       validator.valid?
-      expect(validator.messages.first[:message]).to eql "The content template in position 1's block in position 1 within the file at `/content_templates/content_templates.json` does not have a valid `type`."
+      expect(validator.messages.first[:message]).to eql "The content template in position 1's block in position 1 within the file at `/content_templates/content_templates.json` does not have a valid `data_type`."
     end
 
     it 'has an #errors array with an error' do
@@ -674,7 +674,7 @@ RSpec.describe LiveEditor::CLI::Validators::ContentTemplatesValidator, fakefs: t
 
     it 'has an #errors array with an error message' do
       validator.valid?
-      expect(validator.errors.first[:message]).to eql "The content template in position 1's block in position 1 within the file at `/content_templates/content_templates.json` does not have a valid `type`."
+      expect(validator.errors.first[:message]).to eql "The content template in position 1's block in position 1 within the file at `/content_templates/content_templates.json` does not have a valid `data_type`."
     end
 
     it 'has no #warnings' do
@@ -697,7 +697,7 @@ RSpec.describe LiveEditor::CLI::Validators::ContentTemplatesValidator, fakefs: t
               blocks: [
                 {
                   title: 'My Block',
-                  type: 'text',
+                  data_type: 'text',
                   required: 'bananas'
                 }
               ]
@@ -751,7 +751,7 @@ RSpec.describe LiveEditor::CLI::Validators::ContentTemplatesValidator, fakefs: t
               blocks: [
                 {
                   title: 'My Block',
-                  type: 'text',
+                  data_type: 'text',
                   inline: 'bananas'
                 }
               ]
