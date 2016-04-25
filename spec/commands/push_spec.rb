@@ -210,7 +210,7 @@ RSpec.describe LiveEditor::CLI::Main do
       end
     end # logged in with layout and region
 
-    context 'logged in with layout and region with validation error' do
+    context 'logged in with layout and region with server error' do
       include_context 'minimal valid theme', false
       include_context 'within theme root'
       include_context 'logged in'
@@ -291,9 +291,9 @@ RSpec.describe LiveEditor::CLI::Main do
         output = capture(:stdout) { subject.push }
         expect(output).to include 'Uploading layouts...'
         expect(output).to include '/layouts/site_layout.liquid'
-        expect(output).to include 'ERROR: Region `var_name` `the_main` has already been taken'
+        expect(output).to include 'Region `Main`: `var_name` has already been taken'
       end
-    end # logged in with layout and region with validation error
+    end # logged in with layout and region with server error
 
     context 'logged in with content template and server validation error' do
       include_context 'minimal valid theme', false

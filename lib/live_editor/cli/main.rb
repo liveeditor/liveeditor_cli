@@ -441,17 +441,13 @@ module LiveEditor
                 layout_id = response_body['data']['id']
                 region_id = server_region['id']
 
-                region_response = LiveEditor::CLI::request do
+                response = LiveEditor::CLI::request do
                   LiveEditor::API::Themes::Region.update(layout_id, region_id, region_attrs)
                 end
 
-                # Report error and exit if request failed.
-                if region_response.error?
-                  region_response.errors.each do |key, value|
-                    key = key.underscore
-                    say("ERROR: Region `#{key}` `#{region_attrs[key]}` #{value.first}", :red)
-                  end
-
+                if response.error?
+                  LiveEditor::CLI::display_server_errors_for response,
+                                                             prefix: "Region `#{server_region['attributes']['title']}`:"
                   return
                 end
               end
@@ -460,7 +456,7 @@ module LiveEditor
         end
 
       rescue LiveEditor::API::OAuthRefreshError => e
-        say "Your login credentials have expired. Please login again with the `liveeditor login` command", :red
+        say 'Your login credentials have expired. Please login again with the `liveeditor login` command', :red
         return
       end
 
