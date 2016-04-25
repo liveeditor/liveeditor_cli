@@ -133,7 +133,7 @@ module LiveEditor
             if content_template['displays'].any?
               # A folder named after the content template's `var_name` must be
               # present if there are any displays.
-              folder_name = content_template['var_name'] || LiveEditor::CLI::naming_for(content_template['title'])[:var_name]
+              folder_name = content_template['folder_name'] || content_template['var_name'] || LiveEditor::CLI::naming_for(content_template['title'])[:var_name]
 
               if folder_name.present? && !File.exist?(templates_folder_loc + '/' + folder_name)
                 self.messages << {
@@ -172,7 +172,7 @@ module LiveEditor
           end
 
           # Matching file must be found within subfolder.
-          folder_name = content_template['var_name'] || LiveEditor::CLI::naming_for(content_template['title'])[:var_name]
+          folder_name = content_template['folder_name'] || content_template['var_name'] || LiveEditor::CLI::naming_for(content_template['title'])[:var_name]
           file_name = display['file_name'] || LiveEditor::CLI::naming_for(display['title'])[:var_name]
 
           if folder_name.present? && file_name.present?

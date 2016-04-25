@@ -78,8 +78,8 @@ RSpec.describe LiveEditor::CLI::Validators::ContentTemplatesValidator, fakefs: t
         })
       end
 
-      Dir.mkdir(theme_root + '/content_templates/a_var_name')
-      FileUtils.touch(theme_root + '/content_templates/a_var_name/the_default_display.liquid')
+      Dir.mkdir(theme_root + '/content_templates/something')
+      FileUtils.touch(theme_root + '/content_templates/something/the_default_display.liquid')
     end
 
     it 'is #valid?' do
