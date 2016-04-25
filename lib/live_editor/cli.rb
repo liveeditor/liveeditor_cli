@@ -6,6 +6,7 @@ require 'live_editor/cli/main'
 
 module LiveEditor
   module CLI
+    # Configures client to use for API requests based on stored credentials.
     def self.configure_client!
       config = read_config!
       n = Netrc.read
@@ -20,7 +21,8 @@ module LiveEditor
         access_token = password_parts.first
         refresh_token = password_parts.last
 
-        LiveEditor::API::client = LiveEditor::API::Client.new domain: config['admin_domain'], port: port, access_token: access_token,
+        LiveEditor::API::client = LiveEditor::API::Client.new domain: config['admin_domain'], port: port,
+                                                              access_token: access_token,
                                                               refresh_token: refresh_token, use_ssl: use_ssl
       else
         LiveEditor::API::client = LiveEditor::API::Client.new
