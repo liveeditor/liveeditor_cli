@@ -43,6 +43,31 @@ RSpec.describe LiveEditor::CLI::Main do
       end
     end
 
+    context 'logged in with partial and server error' do
+      include_context 'minimal valid theme', false
+      include_context 'within theme root'
+      include_context 'logged in'
+      include_context 'with partial'
+
+      let(:error_payload) do
+        {
+          errors: [
+            { detail: 'has already been taken', source: { pointer: '/data/attributes/file-name' } }
+          ]
+        }
+      end
+
+      it 'uploads the partial content' do
+        stub_request(:post, "http://example.api.liveeditorapp.com/themes/partials")
+          .to_return(status: 422, body: error_payload.to_json, headers: { 'Content-Type' => 'application/vnd.api+json' })
+
+        output = capture(:stdout) { subject.push }
+        expect(output).to include 'Uploading partials...'
+        expect(output).to include '/partials/header.liquid'
+        expect(output).to include '`file_name` has already been taken'
+      end
+    end
+
     context 'logged in with layout' do
       include_context 'minimal valid theme', false
       include_context 'within theme root'
@@ -73,7 +98,7 @@ RSpec.describe LiveEditor::CLI::Main do
 
       it 'uploads the layout content' do
         stub_request(:post, "http://example.api.liveeditorapp.com/themes/layouts")
-          .to_return(status: 201, body: response_payload.to_json, headers: { 'Content-Type' => 'application/vnd.json+api' } )
+          .to_return(status: 201, body: response_payload.to_json, headers: { 'Content-Type' => 'application/vnd.api+json' } )
 
         output = capture(:stdout) { subject.push }
         expect(output).to include 'Uploading layouts...'
@@ -81,6 +106,39 @@ RSpec.describe LiveEditor::CLI::Main do
         expect(output).to_not include 'ERROR'
       end
     end # logged in with layout
+
+    context 'logged in with layout and server error' do
+      include_context 'minimal valid theme', false
+      include_context 'within theme root'
+      include_context 'logged in'
+      include_context 'with layout Liquid template', 'site'
+
+      before do
+        File.open(theme_root + '/layouts/layouts.json', 'w') do |f|
+          f.write JSON.generate({
+            layouts: [
+              { title: 'Site' }
+            ]
+          })
+        end
+      end
+
+      let(:error_payload) do
+        {
+          errors: [
+            { detail: 'has already been taken', source: { pointer: '/data/attributes/title' } }
+          ]
+        }
+      end
+
+      it 'aborts and displays server error' do
+        stub_request(:post, "http://example.api.liveeditorapp.com/themes/layouts")
+          .to_return(status: 422, body: error_payload.to_json, headers: { 'Content-Type' => 'application/vnd.api+json' } )
+
+        output = capture(:stdout) { subject.push }
+        expect(output).to include 'Layout in position 1: `title` has already been taken'
+      end
+    end # logged in with layout and server error
 
     context 'logged in with layout and region' do
       include_context 'minimal valid theme', false
@@ -140,7 +198,7 @@ RSpec.describe LiveEditor::CLI::Main do
 
       it 'uploads the layout content' do
         stub_request(:post, 'http://example.api.liveeditorapp.com/themes/layouts')
-          .to_return(status: 201, body: response_payload.to_json, headers: { 'Content-Type' => 'application/vnd.json+api' } )
+          .to_return(status: 201, body: response_payload.to_json, headers: { 'Content-Type' => 'application/vnd.api+json' } )
 
         stub_request(:patch, 'http://example.api.liveeditorapp.com/themes/layouts/1234/regions/1235')
           .to_return(status: 200)
@@ -237,6 +295,32 @@ RSpec.describe LiveEditor::CLI::Main do
       end
     end # logged in with layout and region with validation error
 
+    context 'logged in with content template and server validation error' do
+      include_context 'minimal valid theme', false
+      include_context 'within theme root'
+      include_context 'logged in'
+      include_context 'with content_templates.json'
+      include_context 'with block'
+
+      let(:error_payload) do
+        {
+          errors: [
+            { detail: "can't be blank", source: { pointer: '/data/attributes/title' } }
+          ]
+        }
+      end
+
+      before do
+        stub_request(:post, 'http://example.api.liveeditorapp.com/themes/content-templates')
+          .to_return(status: 422, body: error_payload.to_json, headers: { 'Content-Type' => 'application/vnd.api+json' } )
+      end
+
+      it 'displays the error' do
+        output = capture(:stdout) { subject.push }
+        expect(output).to include "`title` can't be blank"
+      end
+    end
+
     context 'logged in with content template and block' do
       include_context 'minimal valid theme', false
       include_context 'within theme root'
@@ -272,7 +356,7 @@ RSpec.describe LiveEditor::CLI::Main do
 
       it 'uploads the content template' do
         stub_request(:post, 'http://example.api.liveeditorapp.com/themes/content-templates')
-          .to_return(status: 201, body: content_template_response_payload.to_json, headers: { 'Content-Type' => 'application/vnd.json+api' } )
+          .to_return(status: 201, body: content_template_response_payload.to_json, headers: { 'Content-Type' => 'application/vnd.api+json' } )
 
         stub_request(:post, 'http://example.api.liveeditorapp.com/themes/content-templates/1234/blocks')
           .to_return(status: 200)
@@ -282,7 +366,48 @@ RSpec.describe LiveEditor::CLI::Main do
         expect(output).to include 'Article'
         expect(output).to_not include 'ERROR'
       end
-    end # logged in with content template and display
+    end # logged in with content template and block
+
+    context 'logged in with content template, block, and server error' do
+      include_context 'minimal valid theme', false
+      include_context 'within theme root'
+      include_context 'logged in'
+      include_context 'with content_templates.json'
+      include_context 'with block'
+
+      let(:content_template_response_payload) do
+        {
+          'data' => {
+            'type' => 'content-templates',
+            'id' => '1234',
+            'attributes' => {
+              'title' => 'Article'
+            }
+          }
+        }
+      end
+
+      let (:error_payload) do
+        {
+          errors: [
+            { detail: 'has already been taken', source: { pointer: '/data/attributes/title' } }
+          ]
+        }
+      end
+
+      before do
+        stub_request(:post, 'http://example.api.liveeditorapp.com/themes/content-templates')
+          .to_return(status: 201, body: content_template_response_payload.to_json, headers: { 'Content-Type' => 'application/vnd.api+json' } )
+
+        stub_request(:post, 'http://example.api.liveeditorapp.com/themes/content-templates/1234/blocks')
+          .to_return(status: 422, body: error_payload.to_json, headers: { 'Content-Type' => 'application/vnd.api+json' })
+      end
+
+      it 'halts and displays error' do
+        output = capture(:stdout) { subject.push }
+        expect(output).to include 'Block in position 1: `title` has already been taken'
+      end
+    end # logged in with content template, block, and server error
 
     context 'logged in with content template and display' do
       include_context 'minimal valid theme', false
@@ -319,7 +444,7 @@ RSpec.describe LiveEditor::CLI::Main do
 
       it 'uploads the content template' do
         stub_request(:post, 'http://example.api.liveeditorapp.com/themes/content-templates')
-          .to_return(status: 201, body: content_template_response_payload.to_json, headers: { 'Content-Type' => 'application/vnd.json+api' } )
+          .to_return(status: 201, body: content_template_response_payload.to_json, headers: { 'Content-Type' => 'application/vnd.api+json' } )
 
         stub_request(:post, 'http://example.api.liveeditorapp.com/themes/content-templates/1234/displays')
           .to_return(status: 200)
@@ -331,6 +456,45 @@ RSpec.describe LiveEditor::CLI::Main do
         expect(output).to_not include 'ERROR'
       end
     end # logged in with content template and display
+
+    context 'logged in with content template, display, and server error' do
+      include_context 'minimal valid theme', false
+      include_context 'within theme root'
+      include_context 'logged in'
+      include_context 'with content_templates.json'
+      include_context 'with display Liquid template', 'default'
+
+      let(:content_template_response_payload) do
+        {
+          'data' => {
+            'type' => 'content-templates',
+            'id' => '1234',
+            'attributes' => {
+              'title' => 'Article'
+            }
+          }
+        }
+      end
+
+      let (:error_payload) do
+        {
+          errors: [
+            { detail: 'has already been taken', source: { pointer: '/data/attributes/title' } }
+          ]
+        }
+      end
+
+      it 'uploads the content template' do
+        stub_request(:post, 'http://example.api.liveeditorapp.com/themes/content-templates')
+          .to_return(status: 201, body: content_template_response_payload.to_json, headers: { 'Content-Type' => 'application/vnd.api+json' } )
+
+        stub_request(:post, 'http://example.api.liveeditorapp.com/themes/content-templates/1234/displays')
+          .to_return(status: 422, body: error_payload.to_json, headers: { 'Content-Type' => 'application/vnd.api+json' })
+
+        output = capture(:stdout) { subject.push }
+        expect(output).to include 'Display in position 1: `title` has already been taken'
+      end
+    end # logged in with content template, display, and server error
 
     context 'outside of theme root', fakefs: true do
       include_context 'outside of theme root'

@@ -29,6 +29,16 @@ module LiveEditor
       end
     end
 
+    # Displays server errors for a given response.
+    def self.display_server_errors_for(response, options = {})
+      response.errors.each do |key, error|
+        message = options[:prefix].present? ? [options[:prefix]] : []
+        message << "`#{key.underscore}`"
+        message << error
+        puts message.join(' ')
+      end
+    end
+
     # Returns a hash with 2 values for the `title`:
     #
     # 1. `title` is the titleized version. Ex. 'My Theme'

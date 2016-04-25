@@ -246,9 +246,14 @@ module LiveEditor
           response = nil # Scope this outside of the File.open block below so we can access it aferward.
 
           File.open(file) do |file_to_upload|
-            LiveEditor::CLI::request do
+            response = LiveEditor::CLI::request do
               LiveEditor::API::Themes::Assets::Upload.create(file_to_upload, file_name, content_type)
             end
+          end
+
+          if response.error?
+            say('ERROR', :red)
+            return LiveEditor::CLI::display_server_errors_for(response)
           end
         end
         say ''
@@ -265,10 +270,12 @@ module LiveEditor
             response = nil # Scope this outside of the File.open block below so we can access it aferward.
 
             File.open(file) do |file_to_upload|
-              LiveEditor::CLI::request do
+              response = LiveEditor::CLI::request do
                 LiveEditor::API::Themes::Partial.create(file_name, file_to_upload.read)
               end
             end
+
+            return LiveEditor::CLI::display_server_errors_for(response) if response.error?
           end
 
           say ''
@@ -296,18 +303,25 @@ module LiveEditor
                 icon_title: content_template_config['icon_title']
             end
 
+            return LiveEditor::CLI::display_server_errors_for(response) if response.error?
+
             content_template_id = response.parsed_body['data']['id']
 
             # Blocks
             if content_template_config['blocks'].present?
               content_template_config['blocks'].each_with_index do |block_config, index|
-                LiveEditor::CLI::request do
+                block_response = LiveEditor::CLI::request do
                   LiveEditor::API::Themes::Block.create content_template_id, block_config['title'],
                     block_config['data_type'], index,
                     var_name: block_config['var_name'],
                     description: block_config['description'],
                     required: block_config['required'],
                     inline: block_config['inline']
+                end
+
+                if block_response.error?
+                  return LiveEditor::CLI::display_server_errors_for block_response,
+                                                                    prefix: "Block in position #{index + 1}:"
                 end
               end
             end
@@ -336,11 +350,16 @@ module LiveEditor
 
                 # Create display record via API.
                 File.open(file) do |file_to_upload|
-                  LiveEditor::CLI::request do
+                  display_response = LiveEditor::CLI::request do
                     LiveEditor::API::Themes::Display.create content_template_id, display_config['title'],
                       file_to_upload.read, index,
                       description: display_config['description'],
                       file_name: display_config['file_name']
+                  end
+
+                  if display_response.error?
+                    return LiveEditor::CLI::display_server_errors_for display_response,
+                                                                      prefix: "Display in position #{index + 1}:"
                   end
                 end
               end
@@ -358,7 +377,7 @@ module LiveEditor
           File.directory?(file) || file == theme_root + '/layouts/layouts.json'
         end
 
-        files.each do |file|
+        files.each_with_index do |file, index|
           file_name = file.sub(theme_root, '').sub('/layouts/', '')
           say('/layouts/' + file_name)
 
@@ -378,68 +397,65 @@ module LiveEditor
             end
           end
 
+          # Error
+          if response.error?
+            return LiveEditor::CLI::display_server_errors_for(response, prefix: "Layout in position #{index + 1}:")
+          end
+
           # Successful response: process regions
-          if response.success?
-            # Grab regions from server.
-            response_body = response.parsed_body
+          response_body = response.parsed_body
 
-            server_regions = if response_body.has_key?('included')
-              response_body['included'].select { |data| data['type'] == 'regions' }
-            else
-              []
-            end
-
-            # Grab regions from layout config.
-            regions_config = config_entry['regions'] || []
-
-            # Loop through regions from server and "fill in the blanks" with matching config.
-            server_regions.each do |server_region|
-              region_config = regions_config.select do |config|
-                config['title'] == server_region['attributes']['title']
-              end
-
-              if region_config.any?
-                region_config = region_config.first
-                region_attrs = {}
-
-                if region_config['var_name'].present? && region_config['var_name'] != server_region['var_name']
-                  region_attrs['var_name'] = region_config['var_name']
-                end
-
-                if region_config['description'] != server_region['description']
-                  region_attrs['description'] = region_config['description']
-                end
-
-                if region_config['max_num_content'] != server_region['max_num_content']
-                  region_attrs['max_num_content'] = region_config['max_num_content']
-                end
-
-                # Only update if there are updates to send.
-                unless region_attrs.empty?
-                  layout_id = response_body['data']['id']
-                  region_id = server_region['id']
-
-                  region_response = LiveEditor::CLI::request do
-                    LiveEditor::API::Themes::Region.update(layout_id, region_id, region_attrs)
-                  end
-
-                  # Report error and exit if request failed.
-                  if region_response.error?
-                    region_response.errors.each do |key, value|
-                      key = key.underscore
-                      say("ERROR: Region `#{key}` `#{region_attrs[key]}` #{value.first}", :red)
-                    end
-
-                    return
-                  end
-                end
-              end
-            end
-          # Error: abort
+          server_regions = if response_body.has_key?('included')
+            response_body['included'].select { |data| data['type'] == 'regions' }
           else
-            # TODO: Report actual errors
-            say('ERROR: Unable to process layouts.', :red)
-            return
+            []
+          end
+
+          # Grab regions from layout config.
+          regions_config = config_entry['regions'] || []
+
+          # Loop through regions from server and "fill in the blanks" with matching config.
+          server_regions.each do |server_region|
+            region_config = regions_config.select do |config|
+              config['title'] == server_region['attributes']['title']
+            end
+
+            if region_config.any?
+              region_config = region_config.first
+              region_attrs = {}
+
+              if region_config['var_name'].present? && region_config['var_name'] != server_region['var_name']
+                region_attrs['var_name'] = region_config['var_name']
+              end
+
+              if region_config['description'] != server_region['description']
+                region_attrs['description'] = region_config['description']
+              end
+
+              if region_config['max_num_content'] != server_region['max_num_content']
+                region_attrs['max_num_content'] = region_config['max_num_content']
+              end
+
+              # Only update if there are updates to send.
+              unless region_attrs.empty?
+                layout_id = response_body['data']['id']
+                region_id = server_region['id']
+
+                region_response = LiveEditor::CLI::request do
+                  LiveEditor::API::Themes::Region.update(layout_id, region_id, region_attrs)
+                end
+
+                # Report error and exit if request failed.
+                if region_response.error?
+                  region_response.errors.each do |key, value|
+                    key = key.underscore
+                    say("ERROR: Region `#{key}` `#{region_attrs[key]}` #{value.first}", :red)
+                  end
+
+                  return
+                end
+              end
+            end
           end
         end
 

@@ -49,6 +49,35 @@ RSpec.describe LiveEditor::CLI, fakefs: true do
     it_behaves_like('theme_root_dir', :theme_root_dir!, true)
   end
 
+  describe '.display_server_errors_for' do
+    let(:response) do
+      error_response = Net::HTTPUnprocessableEntity.new('1.1', 422, '')
+      error_response.add_field('Content-Type', 'application/vnd.api+json')
+      error_response.instance_variable_set(:@body, {
+        errors: [
+          { detail: "can't be blank", source: { pointer: '/data/attributes/title' } }
+        ]
+      }.to_json)
+      error_response.instance_variable_set(:@read, true)
+
+      LiveEditor::API::Response.new(error_response)
+    end
+
+    context 'without prefix' do
+      it 'displays the error' do
+        output = capture(:stdout) { LiveEditor::CLI::display_server_errors_for(response) }
+        expect(output).to eql "`title` can't be blank"
+      end
+    end
+
+    context 'with prefix' do
+      it 'displays the error' do
+        output = capture(:stdout) { LiveEditor::CLI::display_server_errors_for(response, prefix: 'Some prefix:') }
+        expect(output).to eql "Some prefix: `title` can't be blank"
+      end
+    end
+  end
+
   describe '.naming_for' do
     describe :title do
       it 'titleizes a lowercase single word' do
