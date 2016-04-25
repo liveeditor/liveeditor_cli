@@ -296,6 +296,23 @@ module LiveEditor
                 icon_title: content_template_config['icon_title']
             end
 
+            content_template_id = response.parsed_body['data']['id']
+
+            # Blocks
+            if content_template_config['blocks'].present?
+              content_template_config['blocks'].each_with_index do |block_config, index|
+                LiveEditor::CLI::request do
+                  LiveEditor::API::Themes::Block.create content_template_id, block_config['title'],
+                    block_config['data_type'], index,
+                    var_name: block_config['var_name'],
+                    description: block_config['description'],
+                    required: block_config['required'],
+                    inline: block_config['inline']
+                end
+              end
+            end
+
+            # Displays
             # Name of folder containing display files.
             folder_name = if content_template_config['folder_name'].present?
               content_template_config['folder_name']
@@ -306,23 +323,25 @@ module LiveEditor
               naming[:var_name]
             end
 
-            content_template_config['displays'].each_with_index do |display_config, index|
-              file_name = if display_config['file_name'].present?
-                display_config['file_name']
-              else
-                LiveEditor::CLI::naming_for(display_config['title'])[:var_name] + '_display.liquid'
-              end
+            if content_template_config['displays'].present?
+              content_template_config['displays'].each_with_index do |display_config, index|
+                file_name = if display_config['file_name'].present?
+                  display_config['file_name']
+                else
+                  LiveEditor::CLI::naming_for(display_config['title'])[:var_name] + '_display.liquid'
+                end
 
-              file = "#{templates_folder_loc}/#{folder_name}/#{file_name}"
-              say "/content_templates/#{folder_name}/#{file_name}"
+                file = "#{templates_folder_loc}/#{folder_name}/#{file_name}"
+                say "/content_templates/#{folder_name}/#{file_name}"
 
-              # Create display record via API.
-              File.open(file) do |file_to_upload|
-                LiveEditor::CLI::request do
-                  LiveEditor::API::Themes::Display.create response.parsed_body['data']['id'], display_config['title'],
-                    file_to_upload.read, index,
-                    description: display_config['description'],
-                    file_name: display_config['file_name']
+                # Create display record via API.
+                File.open(file) do |file_to_upload|
+                  LiveEditor::CLI::request do
+                    LiveEditor::API::Themes::Display.create content_template_id, display_config['title'],
+                      file_to_upload.read, index,
+                      description: display_config['description'],
+                      file_name: display_config['file_name']
+                  end
                 end
               end
             end

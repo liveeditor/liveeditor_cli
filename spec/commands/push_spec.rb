@@ -237,6 +237,53 @@ RSpec.describe LiveEditor::CLI::Main do
       end
     end # logged in with layout and region with validation error
 
+    context 'logged in with content template and block' do
+      include_context 'minimal valid theme', false
+      include_context 'within theme root'
+      include_context 'logged in'
+      include_context 'with content_templates.json'
+      include_context 'with block'
+
+      let(:content_template_response_payload) do
+        {
+          'data' => {
+            'type' => 'content-templates',
+            'id' => '1234',
+            'attributes' => {
+              'title' => 'Article'
+            }
+          }
+        }
+      end
+
+      let (:display_response_payload) do
+        {
+          'data' => {
+            'type' => 'blocks',
+            'id' => '1235',
+            'attributes' => {
+              'title' => 'Title',
+              'data-type' => 'text',
+              'var-name' => 'title'
+            }
+          }
+        }
+      end
+
+      it 'uploads the content template' do
+        stub_request(:post, 'http://example.api.liveeditorapp.com/themes/content-templates')
+          .to_return(status: 201, body: content_template_response_payload.to_json, headers: { 'Content-Type' => 'application/vnd.json+api' } )
+
+        stub_request(:post, 'http://example.api.liveeditorapp.com/themes/content-templates/1234/blocks')
+          .to_return(status: 200)
+
+        output = capture(:stdout) { subject.push }
+        expect(output).to include 'Uploading content templates...'
+        expect(output).to include 'Article'
+        expect(output).to_not include 'ERROR'
+      end
+    end # logged in with content template and display
+
     context 'logged in with content template and display' do
       include_context 'minimal valid theme', false
       include_context 'within theme root'

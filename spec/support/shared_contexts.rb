@@ -135,6 +135,27 @@ shared_context 'with content_templates.json' do
   end
 end
 
+shared_context 'with block' do
+  before do
+    json = File.read(theme_root + '/content_templates/content_templates.json')
+    json = JSON.parse(json)
+
+    json['content_templates'] << {
+      title: 'Article',
+      blocks: [
+        {
+          title: 'Title',
+          data_type: 'text'
+        }
+      ]
+    }
+
+    File.open(theme_root + '/content_templates/content_templates.json', 'w') do |f|
+      f.write json.to_json
+    end
+  end
+end
+
 shared_context 'with display Liquid template' do
   before do
     json = File.read(theme_root + '/content_templates/content_templates.json')
