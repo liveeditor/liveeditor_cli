@@ -16,17 +16,17 @@ module LiveEditor
           # content_templates folder is optional.
           return true unless File.exist?(templates_folder_loc)
 
-          # Location of /content_templates/content_templates.json.
+          # Location of `/content_templates/content_templates.json`.
           templates_config_loc = templates_folder_loc + '/content_templates.json'
 
-          # content_templates.json is optional too.
+          # `content_templates.json` is optional too.
           return true unless File.exist?(templates_config_loc)
 
           # Validate format of content_templates.json.
-          # Returns false on failure because we can't continue further unless this is valid.
-          begin
-            templates_config = JSON.parse(File.read(templates_config_loc))
-          rescue Exception => e
+          templates_config = LiveEditor::CLI::content_templates_config
+
+          # Returns `false` on parse failure because we can't continue further unless this is valid.
+          unless templates_config.parsed?
             self.messages << {
               type: :error,
               message: 'The file at `/content_templates/content_templates.json` does not contain valid JSON markup.'
@@ -37,7 +37,7 @@ module LiveEditor
 
           # Validate presence of root `content_templates` attribute.
           # Returns false on failure because we can't continue further unless this is valid.
-          unless templates_config['content_templates'].present? && templates_config['content_templates'].is_a?(Array)
+          unless templates_config.config['content_templates'].present? && templates_config.config['content_templates'].is_a?(Array)
             self.messages << {
               type: :error,
               message: 'The file at `/content_templates/content_templates.json` must contain a root `content_templates` attribute containing an array.'
@@ -47,7 +47,7 @@ module LiveEditor
           end
 
           # Validate each content templates's attributes.
-          templates_config['content_templates'].each_with_index do |template_config, index|
+          templates_config.content_templates.each_with_index do |template_config, index|
             validate_content_template(template_config, index, templates_folder_loc)
           end
 

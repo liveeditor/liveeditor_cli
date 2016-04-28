@@ -18,6 +18,8 @@ module LiveEditor
         #    interfaces.
         # -  `max_num_content` - Maximum number of content items allowed within
         #    this region.
+        # -  `content_templates` - Array of IDs of content templates to include
+        #    in the `content-templates` relationship payload.
         def self.update(layout_id, id, attributes = {})
           payload = {
             data: {
@@ -27,8 +29,20 @@ module LiveEditor
             }
           }
 
-          attributes.each do |key, value|
+          attributes.except('content_templates').each do |key, value|
             payload[:data][:attributes][key.to_s.dasherize] = value
+          end
+
+          if attributes['content_templates'].present? && attributes['content_templates'].any?
+            payload[:data][:relationships] = {}
+            payload[:data][:relationships]['content-templates'] = { data: [] }
+
+            attributes['content_templates'].each do |content_template_id|
+              payload[:data][:relationships]['content-templates'][:data] << {
+                type: 'content-templates',
+                id: content_template_id
+              }
+            end
           end
 
           LiveEditor::API::client.patch("/themes/layouts/#{layout_id}/regions/#{id}", payload: payload)

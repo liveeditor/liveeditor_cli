@@ -44,10 +44,20 @@ RSpec.describe LiveEditor::CLI::Validators::LayoutsValidator, fakefs: true do
   context 'with valid fully-loaded `layouts.json`' do
     include_context 'basic theme'
     include_context 'with layouts folder'
+    include_context 'with content_templates folder'
     include_context 'with layout Liquid template', 'something'
     include_context 'within theme root'
 
     before do
+      # Content template is needed for `content_templates` array below.
+      File.open(theme_root + '/content_templates/content_templates.json', 'w') do |f|
+        f.write JSON.generate({
+          content_templates: [
+            { title: 'Article' }
+          ]
+        })
+      end
+
       File.open(theme_root + '/layouts/layouts.json', 'w') do |f|
         f.write JSON.generate({
           layouts: [
@@ -61,7 +71,10 @@ RSpec.describe LiveEditor::CLI::Validators::LayoutsValidator, fakefs: true do
                   title: 'Main',
                   var_name: 'main',
                   description: 'Another description.',
-                  content_templates: ['text'],
+                  content_templates: [
+                    'text',
+                    'article'
+                  ],
                   max_num_content: 2
                 }
               ]
@@ -526,6 +539,62 @@ RSpec.describe LiveEditor::CLI::Validators::LayoutsValidator, fakefs: true do
       expect(validator.warnings).to eql []
     end
   end # with non-array region `content_templates`
+
+  context 'with non-matching region `content_templates` value' do
+    include_context 'basic theme'
+    include_context 'with layouts folder'
+    include_context 'with layout Liquid template', 'my_layout'
+    include_context 'within theme root'
+
+    before do
+      File.open(theme_root + '/layouts/layouts.json', 'w') do |f|
+        f.write JSON.generate({
+          layouts: [
+            {
+              title: 'My Layout',
+              regions: [
+                {
+                  title: 'Main',
+                  content_templates: [
+                    'banana'
+                  ]
+                }
+              ]
+            }
+          ]
+        })
+      end
+    end
+
+    it 'is not #valid?' do
+      expect(validator.valid?).to eql false
+    end
+
+    it 'has a #messages array with an error' do
+      validator.valid?
+      expect(validator.messages.first[:type]).to eql :error
+    end
+
+    it 'has a #messages array with an error message' do
+      validator.valid?
+      expect(validator.messages.first[:message]).to eql "The layout in position 1's region in position 1 has an invalid `content_template`: `banana`."
+    end
+
+    it 'has an #errors array with an error' do
+      validator.valid?
+      expect(validator.errors.first[:type]).to eql :error
+    end
+
+    it 'has an #errors array with an error message' do
+      validator.valid?
+      expect(validator.errors.first[:message]).to eql "The layout in position 1's region in position 1 has an invalid `content_template`: `banana`."
+    end
+
+    it 'has no #warnings' do
+      validator.valid?
+      expect(validator.warnings).to eql []
+    end
+  end # with non-matching region `content_templates` value
 
   context 'with non-integer region `max_num_content`' do
     include_context 'basic theme'

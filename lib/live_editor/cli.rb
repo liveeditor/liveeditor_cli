@@ -57,6 +57,22 @@ module LiveEditor
       JSON.parse(File.read(theme_root + '/config.json'))
     end
 
+    # Returns `ContentTemplatesConfig` object with data loaded in from the file
+    # at `/content_templates/content_templates.json`. Reads in the data in if it
+    # hasn't already; otherwise, caches the data in a class variable for better
+    # performance.
+    def self.content_templates_config
+      @@content_templates_config ||= nil
+
+      unless @@content_templates_config.present?
+        theme_root = LiveEditor::CLI::theme_root_dir!
+        content_templates_loc = theme_root + '/content_templates/content_templates.json'
+        @@content_templates_config = LiveEditor::CLI::Config::ContentTemplatesConfig.new(content_templates_loc)
+      end
+
+      @@content_templates_config
+    end
+
     # Most requests to the API should be run as a block through this method.
     #
     # If the response refreshes the OAuth credentials, this method will handle
@@ -84,22 +100,31 @@ module LiveEditor
     # commands from any subfolder within the theme.
     #
     # If the script is being run from outside of any theme, this returns `nil`.
+    #
+    # This method caches the found directory as a class variable after first
+    # run, so you can call it repetitively without a hit to performance.
     def self.theme_root_dir
-      current_dir = Dir.pwd
+      @@theme_root_dir ||= nil
 
-      loop do
-        if Dir[current_dir + '/theme.json'].size > 0
-          break
-        else
-          dir_array = current_dir.split('/')
-          popped = dir_array.pop
-          break if popped.nil?
+      unless @@theme_root_dir.present?
+        current_dir = Dir.pwd
 
-          current_dir = dir_array.join('/')
+        loop do
+          if Dir[current_dir + '/theme.json'].size > 0
+            break
+          else
+            dir_array = current_dir.split('/')
+            popped = dir_array.pop
+            break if popped.nil?
+
+            current_dir = dir_array.join('/')
+          end
         end
+
+        @@theme_root_dir = current_dir.size > 0 ? current_dir : nil
       end
 
-      current_dir.size > 0 ? current_dir : nil
+      @@theme_root_dir
     end
 
     # Displays an error message and returns `false` if a process is not being
@@ -107,7 +132,11 @@ module LiveEditor
     # Otherwise, returns `true`.
     def self.theme_root_dir!
       theme_root = theme_root_dir
-      puts("ERROR: Must be within an existing Live Editor theme's folder to run this command.") unless theme_root
+
+      unless theme_root.present?
+        puts("ERROR: Must be within an existing Live Editor theme's folder to run this command.")
+      end
+
       theme_root
     end
   end

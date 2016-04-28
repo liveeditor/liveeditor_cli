@@ -144,9 +144,21 @@ RSpec.describe LiveEditor::CLI::Main do
       include_context 'minimal valid theme', false
       include_context 'within theme root'
       include_context 'logged in'
+      include_context 'with content_templates folder'
       include_context 'with layout Liquid template', 'site'
 
       before do
+        # Content template is needed to match the one below.
+        File.open(theme_root + '/content_templates/content_templates.json', 'w') do |f|
+          f.write JSON.generate({
+            content_templates: [
+              {
+                title: 'Article'
+              }
+            ]
+          })
+        end
+
         File.open(theme_root + '/layouts/layouts.json', 'w') do |f|
           f.write JSON.generate({
             layouts: [
@@ -155,13 +167,27 @@ RSpec.describe LiveEditor::CLI::Main do
                 regions: [
                   {
                     title: 'Main',
-                    var_name: 'the-main'
+                    var_name: 'the-main',
+                    content_templates: ['article']
                   }
                 ]
               }
             ]
           })
         end
+      end
+
+      let(:ct_response_payload) do
+        {
+          'data' => {
+            'type' => 'content-templates',
+            'id' => '1234',
+            'attributes' => {
+              'title' => 'Article',
+              'var-name' => 'article'
+            }
+          }
+        }
       end
 
       let(:response_payload) do
@@ -197,8 +223,13 @@ RSpec.describe LiveEditor::CLI::Main do
       end
 
       it 'uploads the layout content' do
+        stub_request(:post, 'http://example.api.liveeditorapp.com/themes/content-templates')
+          .to_return status: 201, body: ct_response_payload.to_json,
+                     headers: { 'Content-Type' => 'application/vnd.api+json' }
+
         stub_request(:post, 'http://example.api.liveeditorapp.com/themes/layouts')
-          .to_return(status: 201, body: response_payload.to_json, headers: { 'Content-Type' => 'application/vnd.api+json' } )
+          .to_return status: 201, body: response_payload.to_json,
+                     headers: { 'Content-Type' => 'application/vnd.api+json' }
 
         stub_request(:patch, 'http://example.api.liveeditorapp.com/themes/layouts/1234/regions/1235')
           .to_return(status: 200)
@@ -279,15 +310,17 @@ RSpec.describe LiveEditor::CLI::Main do
         }
       end
 
-      it 'aborts with an error' do
+      before do
         stub_request(:post, 'http://example.api.liveeditorapp.com/themes/layouts')
-          .to_return(status: 201, body: layout_response_payload.to_json,
-                     headers: { 'Content-Type' => 'application/vnd.api+json' } )
+          .to_return status: 201, body: layout_response_payload.to_json,
+                     headers: { 'Content-Type' => 'application/vnd.api+json' }
 
         stub_request(:patch, 'http://example.api.liveeditorapp.com/themes/layouts/1234/regions/1235')
-          .to_return(status: 422, body: region_response_payload.to_json,
-                     headers: { 'Content-Type' => 'application/vnd.api+json' })
+          .to_return status: 422, body: region_response_payload.to_json,
+                     headers: { 'Content-Type' => 'application/vnd.api+json' }
+      end
 
+      it 'aborts with an error' do
         output = capture(:stdout) { subject.push }
         expect(output).to include 'Uploading layouts...'
         expect(output).to include '/layouts/site_layout.liquid'

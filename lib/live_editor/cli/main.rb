@@ -2,6 +2,8 @@ require 'thor'
 require 'json'
 require 'live_editor/api'
 require 'live_editor/cli/version'
+require 'live_editor/cli/config/config'
+require 'live_editor/cli/config/content_templates_config'
 require 'live_editor/cli/validators/theme_validator'
 require 'live_editor/cli/validators/config_validator'
 require 'live_editor/cli/validators/config_sample_validator'
@@ -108,16 +110,6 @@ module LiveEditor
           valid = valid && run_validator(LiveEditor::CLI::Validators::ThemeValidator.new, options[:silent])
         end
 
-        # Layouts validator
-        if ['all', 'layout', 'layouts'].include?(target)
-          unless options[:silent]
-            say ''
-            say 'Validating layouts...'
-          end
-
-          valid = valid && run_validator(LiveEditor::CLI::Validators::LayoutsValidator.new, options[:silent])
-        end
-
         # Content templates validator
         if ['all', 'content_template', 'content_templates'].include?(target)
           unless options[:silent]
@@ -126,6 +118,16 @@ module LiveEditor
           end
 
           valid = valid && run_validator(LiveEditor::CLI::Validators::ContentTemplatesValidator.new, options[:silent])
+        end
+
+        # Layouts validator
+        if ['all', 'layout', 'layouts'].include?(target)
+          unless options[:silent]
+            say ''
+            say 'Validating layouts...'
+          end
+
+          valid = valid && run_validator(LiveEditor::CLI::Validators::LayoutsValidator.new, options[:silent])
         end
 
         # Navigation validator
@@ -285,6 +287,10 @@ module LiveEditor
         templates_folder_loc = theme_root + '/content_templates'
         templates_config_loc = templates_folder_loc + '/content_templates.json'
 
+        # We're going to store content template `id`s/`var_name`s so we can use
+        # them later in regions.
+        content_templates = {}
+
         if File.exist?(templates_folder_loc) && File.exist?(templates_config_loc)
           say 'Uploading content templates...'
           content_templates_config = File.read(templates_config_loc)
@@ -306,6 +312,7 @@ module LiveEditor
             return LiveEditor::CLI::display_server_errors_for(response) if response.error?
 
             content_template_id = response.parsed_body['data']['id']
+            content_templates[response.parsed_body['data']['attributes']['var-name']] = { 'id' => content_template_id }
 
             # Blocks
             if content_template_config['blocks'].present?
@@ -417,23 +424,34 @@ module LiveEditor
           # Loop through regions from server and "fill in the blanks" with matching config.
           server_regions.each do |server_region|
             region_config = regions_config.select do |config|
-              config['title'] == server_region['attributes']['title']
+              var_name = config['var_name'] || LiveEditor::CLI::naming_for(config['title'])[:var_name]
+              var_name == server_region['attributes']['var-name']
             end
 
             if region_config.any?
               region_config = region_config.first
               region_attrs = {}
 
-              if region_config['var_name'].present? && region_config['var_name'] != server_region['var_name']
-                region_attrs['var_name'] = region_config['var_name']
+              if region_config['title'].present? && region_config['title'] != server_region['title']
+                region_attrs['title'] = region_config['title']
               end
 
               if region_config['description'] != server_region['description']
-                region_attrs['description'] = region_config['description']
+                region_attrs['description'] = region_config['description'].present? ? region_config['description'] : nil
               end
 
               if region_config['max_num_content'] != server_region['max_num_content']
                 region_attrs['max_num_content'] = region_config['max_num_content']
+              end
+
+              if region_config['content_templates'].present? && region_config['content_templates'].any?
+                content_template_ids = []
+
+                region_config['content_templates'].each do |var_name|
+                  content_template_ids << content_templates[var_name]['id']
+                end
+
+                region_attrs['content_templates'] = content_template_ids
               end
 
               # Only update if there are updates to send.
