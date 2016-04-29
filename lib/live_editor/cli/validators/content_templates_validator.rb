@@ -35,9 +35,11 @@ module LiveEditor
             return false
           end
 
+          config = templates_config.config
+
           # Validate presence of root `content_templates` attribute.
           # Returns false on failure because we can't continue further unless this is valid.
-          unless templates_config.config['content_templates'].present? && templates_config.config['content_templates'].is_a?(Array)
+          unless config['content_templates'].present? && config['content_templates'].is_a?(Array)
             self.messages << {
               type: :error,
               message: 'The file at `/content_templates/content_templates.json` must contain a root `content_templates` attribute containing an array.'

@@ -22,12 +22,12 @@ module LiveEditor
           # navigation.json is optional too.
           return true unless File.exist?(nav_config_loc)
 
+          nav_config = LiveEditor::CLI::navigation_config
+
           # Validate format of navigation.json.
           # Returns `false` on failure because we can't continue further unless
           # this is valid.
-          begin
-            nav_config = JSON.parse(File.read(nav_config_loc))
-          rescue Exception => e
+          unless nav_config.parsed?
             self.messages << {
               type: :error,
               message: 'The file at `/navigation/navigation.json` does not contain valid JSON markup.'
@@ -36,8 +36,10 @@ module LiveEditor
             return false
           end
 
+          config = nav_config.config
+
           # Validate presence of root `navigation` attribute.
-          unless nav_config['navigation'].present? && nav_config['navigation'].is_a?(Array)
+          unless config['navigation'].present? && config['navigation'].is_a?(Array)
             self.messages << {
               type: :error,
               message: 'The file at `/navigation/navigation.json` must contain a root `navigation` attribute containing an array.'
@@ -47,7 +49,7 @@ module LiveEditor
           end
 
           # Validate each navigation menu's attributes.
-          nav_config['navigation'].each_with_index do |nav_config, index|
+          nav_config.navigation.each_with_index do |nav_config, index|
             # `title` is required.
             if nav_config['title'].blank?
               self.messages << {

@@ -8,7 +8,7 @@ module LiveEditor
   module CLI
     # Configures client to use for API requests based on stored credentials.
     def self.configure_client!
-      config = read_config!
+      config = config_config.config
       n = Netrc.read
       email, password = n[config['admin_domain']]
 
@@ -29,6 +29,25 @@ module LiveEditor
       end
     end
 
+    # Returns `ConfigConfig` object with data loaded in from the file at
+    # `/config.json`.
+    #
+    # For better performance, this method caches the data in a class variable
+    # after the first read.
+    def self.config_config
+      read_config(:@@config_config, '/config.json', 'LiveEditor::CLI::Config::ConfigConfig')
+    end
+
+    # Returns `ContentTemplatesConfig` object with data loaded in from the file
+    # at `/content_templates/content_templates.json`.
+    #
+    # For better performance, this method caches the data in a class variable
+    # after the first read.
+    def self.content_templates_config
+      read_config :@@content_templates_config, '/content_templates/content_templates.json',
+                  'LiveEditor::CLI::Config::ContentTemplatesConfig'
+    end
+
     # Displays server errors for a given response.
     def self.display_server_errors_for(response, options = {})
       response.errors.each do |key, error|
@@ -37,6 +56,15 @@ module LiveEditor
         message << error
         puts message.join(' ')
       end
+    end
+
+    # Returns `LayoutsConfig` object with data loaded in from the file at
+    # `/layouts/layouts.json`.
+    #
+    # For better performance, this method caches the data in a class variable
+    # after the first read.
+    def self.layouts_config
+      read_config(:@@layouts_config, '/layouts/layouts.json', 'LiveEditor::CLI::Config::LayoutsConfig')
     end
 
     # Returns a hash with 2 values for the `title`:
@@ -50,27 +78,13 @@ module LiveEditor
       }
     end
 
-    # Reads config file. Assumes that it has already been validated, so be
-    # sure to do that before running this method.
-    def self.read_config!
-      theme_root = LiveEditor::CLI::theme_root_dir!
-      JSON.parse(File.read(theme_root + '/config.json'))
-    end
-
-    # Returns `ContentTemplatesConfig` object with data loaded in from the file
-    # at `/content_templates/content_templates.json`. Reads in the data in if it
-    # hasn't already; otherwise, caches the data in a class variable for better
-    # performance.
-    def self.content_templates_config
-      @@content_templates_config ||= nil
-
-      unless @@content_templates_config.present?
-        theme_root = LiveEditor::CLI::theme_root_dir!
-        content_templates_loc = theme_root + '/content_templates/content_templates.json'
-        @@content_templates_config = LiveEditor::CLI::Config::ContentTemplatesConfig.new(content_templates_loc)
-      end
-
-      @@content_templates_config
+    # Returns `NavigationConfig` object with data loaded in from the file at
+    # `/navigation/navigation.json`.
+    #
+    # For better performance, this method caches the data in a class variable
+    # after the first read.
+    def self.navigation_config
+      read_config(:@@navigation_config, '/navigation/navigation.json', 'LiveEditor::CLI::Config::NavigationConfig')
     end
 
     # Most requests to the API should be run as a block through this method.
@@ -94,6 +108,15 @@ module LiveEditor
       password = [access_token, refresh_token].join('|')
       n[admin_domain] = email, password
       n.save
+    end
+
+    # Returns `ThemeConfig` object with data loaded in from the file at
+    # `/theme.json`.
+    #
+    # For better performance, this method caches the data in a class variable
+    # after the first read.
+    def self.theme_config
+      read_config(:@@theme_config, '/theme.json', 'LiveEditor::CLI::Config::ThemeConfig')
     end
 
     # Returns path to root folder for this theme. This allows the user to run
@@ -139,5 +162,21 @@ module LiveEditor
 
       theme_root
     end
-  end
-end
+
+  private
+
+    # Reads config file. Assumes that it has already been validated, so be
+    # sure to do that before running this method.
+    def self.read_config(class_var, config_loc, config_class_name)
+      class_variable_set(class_var, nil) unless class_variable_defined?(class_var)
+
+      unless class_variable_get(class_var).present?
+        theme_root = LiveEditor::CLI::theme_root_dir!
+        config_loc = theme_root + config_loc
+        class_variable_set(class_var, config_class_name.constantize.new(config_loc))
+      end
+
+      class_variable_get(class_var)
+    end
+  end # CLI
+end # LiveEditor

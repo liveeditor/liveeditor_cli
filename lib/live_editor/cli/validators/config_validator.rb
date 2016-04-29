@@ -11,10 +11,9 @@ module LiveEditor
 
           # Validate existence of config.json.
           if File.exist?(config_loc)
-            # Validate format of config.json.
-            begin
-              config = JSON.parse(File.read(config_loc))
-            rescue Exception => e
+            config_config = LiveEditor::CLI::config_config
+
+            unless config_config.parsed?
               self.messages << {
                 type: :error,
                 message: 'The file at `/config.json` does not contain valid JSON markup.'
@@ -22,6 +21,8 @@ module LiveEditor
 
               return false
             end
+
+            config = config_config.config
 
             # Validate presence of `admin_domain` attribute.
             if config['admin_domain'].blank? || config['admin_domain'] == '.liveeditorapp.com'

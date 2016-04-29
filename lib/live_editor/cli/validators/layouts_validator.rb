@@ -26,10 +26,10 @@ module LiveEditor
           layouts_config_loc = layouts_folder_loc + '/layouts.json'
 
           if File.exist?(layouts_config_loc)
-            # Validate format of layouts.json.
-            begin
-              layouts_config = JSON.parse(File.read(layouts_config_loc))
-            rescue Exception => e
+            layouts_config = LiveEditor::CLI::layouts_config
+
+            # Validate format of `layouts.json`.
+            unless layouts_config.parsed?
               self.messages << {
                 type: :error,
                 message: 'The file at `/layouts/layouts.json` does not contain valid JSON markup.'
@@ -38,8 +38,10 @@ module LiveEditor
               return false
             end
 
+            config = layouts_config.config
+
             # Validate presence of root `layouts` attribute.
-            unless layouts_config['layouts'] && layouts_config['layouts'].is_a?(Array)
+            unless config['layouts'] && config['layouts'].is_a?(Array)
               self.messages << {
                 type: :error,
                 message: 'The file at `/layouts/layouts.json` must contain a root `layouts` attribute containing an array.'
@@ -49,7 +51,7 @@ module LiveEditor
             end
 
             # Validate each layout's attributes.
-            layouts_config['layouts'].each_with_index do |layout_config, index|
+            layouts_config.layouts.each_with_index do |layout_config, index|
               # Title is required.
               if layout_config['title'].blank?
                 self.messages << {

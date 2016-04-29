@@ -196,4 +196,85 @@ NETRC
       end
     end
   end
+
+  describe '.config_config' do
+    context 'with valid `/config.json`' do
+      include_context 'basic theme'
+      include_context 'with config.json'
+      include_context 'within theme root'
+
+      it 'returns a `ConfigConfig` instance' do
+        expect(LiveEditor::CLI::config_config).to be_a LiveEditor::CLI::Config::ConfigConfig
+      end
+
+      it 'has parsed the config' do
+        expect(LiveEditor::CLI::config_config.parsed?).to eql true
+      end
+    end
+  end
+
+  describe '.content_templates_config' do
+    context 'with valid `/content_templates/content_templates.json`' do
+      include_context 'basic theme'
+      include_context 'with content_templates.json'
+      include_context 'within theme root'
+
+      it 'returns a `ContentTemplatesConfig` instance' do
+        expect(LiveEditor::CLI::content_templates_config).to be_a LiveEditor::CLI::Config::ContentTemplatesConfig
+      end
+
+      it 'has parsed the config' do
+        expect(LiveEditor::CLI::content_templates_config.parsed?).to eql true
+      end
+    end
+  end
+
+  describe '.layouts_config' do
+    context 'with valid `/layouts/layouts.json`' do
+      include_context 'basic theme'
+      include_context 'with layouts folder'
+      include_context 'with layouts.json'
+      include_context 'within theme root'
+
+      it 'returns a `LayoutsConfig` instance' do
+        expect(LiveEditor::CLI::layouts_config).to be_a LiveEditor::CLI::Config::LayoutsConfig
+      end
+
+      it 'has parsed the config' do
+        expect(LiveEditor::CLI::layouts_config.parsed?).to eql true
+      end
+    end
+  end
+
+  describe '.navigation_config' do
+    context 'with valid `/navigation/navigation.json`' do
+      include_context 'basic theme'
+      include_context 'with navigation folder'
+      include_context 'with navigation.json'
+      include_context 'within theme root'
+
+      it 'returns a `NavigationConfig` instance' do
+        expect(LiveEditor::CLI::navigation_config).to be_a LiveEditor::CLI::Config::NavigationConfig
+      end
+
+      it 'has parsed the config' do
+        expect(LiveEditor::CLI::navigation_config.parsed?).to eql true
+      end
+    end
+  end
+
+  describe '.theme_config' do
+    context 'with valid `/theme.json`' do
+      include_context 'basic theme'
+      include_context 'within theme root'
+
+      it 'returns a `ThemeConfig` instance' do
+        expect(LiveEditor::CLI::theme_config).to be_a LiveEditor::CLI::Config::ThemeConfig
+      end
+
+      it 'has parsed the config' do
+        expect(LiveEditor::CLI::theme_config.parsed?).to eql true
+      end
+    end
+  end
 end

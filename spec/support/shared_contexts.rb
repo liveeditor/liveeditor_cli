@@ -186,3 +186,13 @@ shared_context 'with display Liquid template' do
     end
   end
 end
+
+shared_context 'with navigation.json' do
+  before do
+    File.open(theme_root + '/navigation/navigation.json', 'w') do |f|
+      f.write JSON.generate({
+        navigation: []
+      })
+    end
+  end
+end

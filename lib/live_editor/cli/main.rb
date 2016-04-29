@@ -3,7 +3,11 @@ require 'json'
 require 'live_editor/api'
 require 'live_editor/cli/version'
 require 'live_editor/cli/config/config'
+require 'live_editor/cli/config/config_config'
 require 'live_editor/cli/config/content_templates_config'
+require 'live_editor/cli/config/layouts_config'
+require 'live_editor/cli/config/navigation_config'
+require 'live_editor/cli/config/theme_config'
 require 'live_editor/cli/validators/theme_validator'
 require 'live_editor/cli/validators/config_validator'
 require 'live_editor/cli/validators/config_sample_validator'
@@ -171,7 +175,7 @@ module LiveEditor
         end
 
         # Grab config.
-        config = LiveEditor::CLI::read_config!
+        config = LiveEditor::CLI::config_config.config
         say "Connecting to #{config['admin_domain']}."
         say ''
 
@@ -284,19 +288,16 @@ module LiveEditor
         end
 
         # Upload content templates.
-        templates_folder_loc = theme_root + '/content_templates'
-        templates_config_loc = templates_folder_loc + '/content_templates.json'
+        content_templates_config = LiveEditor::CLI::content_templates_config
 
         # We're going to store content template `id`s/`var_name`s so we can use
         # them later in regions.
         content_templates = {}
 
-        if File.exist?(templates_folder_loc) && File.exist?(templates_config_loc)
+        if content_templates_config.parsed?
           say 'Uploading content templates...'
-          content_templates_config = File.read(templates_config_loc)
-          content_templates_config = JSON.parse(content_templates_config)
 
-          content_templates_config['content_templates'].each do |content_template_config|
+          content_templates_config.content_templates.each do |content_template_config|
             say(content_template_config['title'])
 
             # Create base content template record via API.
@@ -352,7 +353,7 @@ module LiveEditor
                   LiveEditor::CLI::naming_for(display_config['title'])[:var_name] + '_display.liquid'
                 end
 
-                file = "#{templates_folder_loc}/#{folder_name}/#{file_name}"
+                file = "#{theme_root}/content_templates/#{folder_name}/#{file_name}"
                 say "/content_templates/#{folder_name}/#{file_name}"
 
                 # Create display record via API.
@@ -377,11 +378,10 @@ module LiveEditor
 
         # Upload layouts.
         say 'Uploading layouts...'
-        layouts_config = File.read(theme_root + '/layouts/layouts.json')
-        layouts_config = JSON.parse(layouts_config)
+        layouts_config = LiveEditor::CLI::layouts_config
 
         files = Dir.glob(theme_root + '/layouts/**/*').reject do |file|
-          File.directory?(file) || file == theme_root + '/layouts/layouts.json'
+          File.directory?(file) || file == "#{theme_root}/layouts/layouts.json"
         end
 
         files.each_with_index do |file, index|
@@ -389,7 +389,7 @@ module LiveEditor
           say('/layouts/' + file_name)
 
           # Grab entry for layout from `layouts.config`.
-          config_entry = layouts_config['layouts'].select do |config|
+          config_entry = layouts_config.layouts.select do |config|
             config['file_name'] == file_name.sub('_layout.liquid', '') ||
               config['title'].underscore == file_name.sub('_layout.liquid', '')
           end.first
