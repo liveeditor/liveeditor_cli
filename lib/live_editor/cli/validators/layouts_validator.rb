@@ -89,61 +89,13 @@ module LiveEditor
                 }
               # If we have an array, continue on to validate regions.
               elsif layout_config['regions']
+                content_templates_config = LiveEditor::CLI::content_templates_config
+
                 layout_config['regions'].each_with_index do |region_config, r_index|
-                  # Title is required.
-                  if region_config['title'].blank?
-                    self.messages << {
-                      type: :error,
-                      message: "The layout in position #{index + 1}'s region in position #{r_index + 1} must have a `title`."
-                    }
-                  end
+                  region_validator = LiveEditor::CLI::Validators::RegionValidator.new region_config, index, r_index,
+                                                                                      content_templates_config
 
-                  if region_config['content_templates'].present?
-                    # Content templates must be an array.
-                    if !region_config['content_templates'].is_a?(Array)
-                      self.messages << {
-                        type: :error,
-                        message: "The layout in position #{index + 1}'s region in position #{r_index + 1} has an invalid `content_templates` attribute: must be an array."
-                      }
-                    # Content templates must be real content templates
-                    else
-                      region_config['content_templates'].each do |content_template_var_name|
-                        # Check if it's a base content type.
-                        if LiveEditor::API::Themes::BASE_CONTENT_TEMPLATE_VAR_NAMES.include?(content_template_var_name)
-                          matching_template_found = true
-                        # Otherwise, search custom types.
-                        else
-                          templates_config = LiveEditor::CLI::content_templates_config
-
-                          matching_templates = templates_config.content_templates.select do |matching_template|
-                            if matching_template['var_name'].present? && matching_template['var_name'] == content_template_var_name
-                              true
-                            else
-                              var_name = LiveEditor::CLI::naming_for(matching_template['title'])[:var_name]
-                              var_name == content_template_var_name
-                            end
-                          end
-
-                          matching_template_found = matching_templates.any?
-                        end
-
-                        unless matching_template_found
-                          self.messages << {
-                            type: :error,
-                            message: "The layout in position #{index + 1}'s region in position #{r_index + 1} has an invalid `content_template`: `#{content_template_var_name}`."
-                          }
-                        end
-                      end
-                    end
-                  end
-
-                  # Max num content must be an integer (if present).
-                  if region_config['max_num_content'].present? && !region_config['max_num_content'].is_a?(Integer)
-                    self.messages << {
-                      type: :error,
-                      message: "The layout in position #{index + 1}'s region in position #{r_index + 1} has an invalid `max_num_content` attribute: must be an integer."
-                    }
-                  end
+                  self.messages.concat(region_validator.messages) unless region_validator.valid?
                 end
               end
             end

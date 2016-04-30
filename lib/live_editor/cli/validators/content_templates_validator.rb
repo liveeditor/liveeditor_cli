@@ -60,37 +60,8 @@ module LiveEditor
 
         # Validates block JSON structure.
         def validate_block(block, content_template_index, block_index)
-          # Title is required.
-          if block['title'].blank?
-            self.messages << {
-              type: :error,
-              message: "The content template in position #{content_template_index + 1}'s block in position #{block_index + 1} within the file at `/content_templates/content_templates.json` does not have a valid `title`."
-            }
-          end
-
-          # Data type is required.
-          if block['data_type'].blank?
-            self.messages << {
-              type: :error,
-              message: "The content template in position #{content_template_index + 1}'s block in position #{block_index + 1} within the file at `/content_templates/content_templates.json` does not have a valid `data_type`."
-            }
-          end
-
-          # Required is optional but must be boolean if set.
-          if block['required'].present? && ![true, false].include?(block['required'])
-            self.messages << {
-              type: :error,
-              message: "The content template in position #{content_template_index + 1}'s block in position #{block_index + 1} within the file at `/content_templates/content_templates.json` does not have a valid boolean value for `required`."
-            }
-          end
-
-          # `inline` is optional but must be boolean if set.
-          if block['inline'].present? && ![true, false].include?(block['inline'])
-            self.messages << {
-              type: :error,
-              message: "The content template in position #{content_template_index + 1}'s block in position #{block_index + 1} within the file at `/content_templates/content_templates.json` does not have a valid boolean value for `inline`."
-            }
-          end
+          block_validator = LiveEditor::CLI::Validators::BlockValidator.new(block, content_template_index, block_index)
+          self.messages.concat(block_validator.messages) unless block_validator.valid?
         end
 
         # Validates content template JSON structure.
@@ -165,36 +136,11 @@ module LiveEditor
 
         # Validates display JSON structure.
         def validate_display(display, content_template_index, display_index, content_template, templates_folder_loc)
-          # `title` is required.
-          if display['title'].blank?
-            self.messages << {
-              type: :error,
-              message: "The content template in position #{content_template_index + 1}'s display in position #{display_index + 1} within the file at `/content_templates/content_templates.json` does not have a valid `title`."
-            }
-          end
+          display_validator = LiveEditor::CLI::Validators::DisplayValidator.new display, content_template_index,
+                                                                                display_index, content_template,
+                                                                                templates_folder_loc
 
-          # Matching file must be found within subfolder.
-          folder_name = content_template['folder_name'] || content_template['var_name'] || LiveEditor::CLI::naming_for(content_template['title'])[:var_name]
-          file_name = display['file_name'] || LiveEditor::CLI::naming_for(display['title'])[:var_name]
-
-          if folder_name.present? && file_name.present?
-            file_name += '_display.liquid'
-
-            if !File.exist?(templates_folder_loc + '/' + folder_name + '/' + file_name)
-              self.messages << {
-                type: :error,
-                message: "The content template in position #{content_template_index + 1}'s display in position #{display_index + 1} within the file at `/content_templates/content_templates.json` is missing its matching Liquid template at `/content_templates/#{folder_name}/#{file_name}`."
-              }
-            end
-          end
-
-          # `default` must be a boolean.
-          if display['default'].present? && ![true, false].include?(display['default'])
-            self.messages << {
-              type: :error,
-              message: "The content template in position #{content_template_index + 1}'s display in position #{display_index + 1} within the file at `/content_templates/content_templates.json` does not have a valid boolean value for `default`."
-            }
-          end
+          self.messages.concat(display_validator.messages) unless display_validator.valid?
         end
       end
     end
