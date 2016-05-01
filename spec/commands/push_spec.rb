@@ -529,6 +529,109 @@ RSpec.describe LiveEditor::CLI::Main do
       end
     end # logged in with content template, display, and server error
 
+    context 'logged in with navigation' do
+      include_context 'minimal valid theme', false
+      include_context 'within theme root'
+      include_context 'logged in'
+      include_context 'with navigation folder'
+      include_context 'with navigation.json'
+      include_context 'with navigation Liquid template'
+
+      let(:content) do
+<<-NAV
+  <nav class="global-nav">
+    {% for link in navigation.links %}
+      <a href="{{ link.url }}" class="global-nav-link {% if link.active? %}is-active{% endif %}">
+        {{ link.title }}
+      </a>
+    {% endfor %}
+  </nav>
+NAV
+      end
+
+      let(:request_payload) do
+        {
+          'data' => {
+            'type' => 'navigations',
+            'attributes' => {
+              'title' => 'Global',
+              'file-name' => 'global_navigation.liquid',
+              'content' => content,
+              'description' => nil,
+              'var-name' => nil
+            }
+          }
+        }
+      end
+
+      let(:response_payload) do
+        {
+          'data' => {
+            'type' => 'navigations',
+            'id' => '1234',
+            'attributes' => {
+              'title' => 'Global',
+              'file-name' => 'global_navigation.liquid',
+              'content' => content,
+              'description' => nil,
+              'var-name' => 'global'
+            }
+          }
+        }
+      end
+
+      before do
+        stub_request(:post, 'http://example.api.liveeditorapp.com/themes/navigations')
+          .with(body: request_payload.to_json)
+          .to_return(status: 201, body: response_payload.to_json, headers: { 'Content-Type' => 'application/vnd.api+json' } )
+      end
+
+      it 'uploads the navigation' do
+        output = capture(:stdout) { subject.push }
+        expect(output).to include 'Uploading navigation menus...'
+        expect(output).to include 'Global'
+      end
+    end # logged in with navigation
+
+    context 'logged in with navigation and server error' do
+      include_context 'minimal valid theme', false
+      include_context 'within theme root'
+      include_context 'logged in'
+      include_context 'with navigation folder'
+      include_context 'with navigation.json'
+      include_context 'with navigation Liquid template'
+
+      let(:content) do
+<<-NAV
+  <nav class="global-nav">
+    {% for link in navigation.links %}
+      <a href="{{ link.url }}" class="global-nav-link {% if link.active? %}is-active{% endif %}">
+        {{ link.title }}
+      </a>
+    {% endfor %}
+  </nav>
+NAV
+      end
+
+      let (:error_payload) do
+        {
+          errors: [
+            { detail: 'has already been taken', source: { pointer: '/data/attributes/title' } }
+          ]
+        }
+      end
+
+      before do
+        stub_request(:post, 'http://example.api.liveeditorapp.com/themes/navigations')
+          .to_return(status: 422, body: error_payload.to_json, headers: { 'Content-Type' => 'application/vnd.api+json' } )
+      end
+
+      it 'uploads the navigation' do
+        output = capture(:stdout) { subject.push }
+        expect(output).to include '`title` has already been taken'
+      end
+    end # logged in with navigation and server error
+
     context 'outside of theme root', fakefs: true do
       include_context 'outside of theme root'
 

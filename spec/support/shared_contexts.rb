@@ -196,3 +196,29 @@ shared_context 'with navigation.json' do
     end
   end
 end
+
+shared_context 'with navigation Liquid template' do
+  before do
+    File.open(theme_root + '/navigation/navigation.json', 'w') do |f|
+      f.write JSON.generate({
+        navigation: [
+          {
+            title: 'Global'
+          }
+        ]
+      })
+    end
+
+    File.open(theme_root + '/navigation/global_navigation.liquid', 'w') do |f|
+      f.write <<-NAV
+  <nav class="global-nav">
+    {% for link in navigation.links %}
+      <a href="{{ link.url }}" class="global-nav-link {% if link.active? %}is-active{% endif %}">
+        {{ link.title }}
+      </a>
+    {% endfor %}
+  </nav>
+NAV
+    end
+  end
+end

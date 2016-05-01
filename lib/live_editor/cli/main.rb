@@ -290,6 +290,32 @@ module LiveEditor
           say ''
         end
 
+        # Upload navigations.
+        navigation_config = LiveEditor::CLI::navigation_config
+
+        if navigation_config.parsed?
+          say 'Uploading navigation menus...'
+
+          navigation_config.navigation.each do |nav_config|
+            say nav_config['title']
+
+            file_name = nav_config['file_name'] || nav_config['var_name'] || LiveEditor::CLI::naming_for(nav_config['title'])[:var_name]
+            file_name = "#{file_name}_navigation.liquid" unless file_name.end_with?('_navigation.liquid')
+            content = File.read(theme_root + '/navigation/' + file_name)
+
+            # Create navigation record via API.
+            response = LiveEditor::CLI::request do
+              LiveEditor::API::Themes::Navigation.create nav_config['title'], file_name, content,
+                                                         description: nav_config['description'],
+                                                         var_name: nav_config['var_name']
+            end
+
+            return LiveEditor::CLI::display_server_errors_for(response) if response.error?
+          end
+
+          say ''
+        end
+
         # Upload content templates.
         content_templates_config = LiveEditor::CLI::content_templates_config
 
