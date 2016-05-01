@@ -9,6 +9,7 @@ require 'live_editor/api/themes/region'
 require 'live_editor/api/themes/content_template'
 require 'live_editor/api/themes/block'
 require 'live_editor/api/themes/display'
+require 'live_editor/api/themes/navigation'
 
 module LiveEditor
   module API
