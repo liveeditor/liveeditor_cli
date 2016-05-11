@@ -577,13 +577,13 @@ module LiveEditor
           blocks.each do |block|
             values = block.split(':')
             var_name = values.first
-            type = values.size == 2 ? values.last : 'text'
+            data_type = values.size == 2 ? values.last : 'text'
             block_title_naming = LiveEditor::CLI::naming_for(var_name)
 
             content_template_config['content_templates'].last[:blocks] << {
               title: block_title_naming[:title],
               description: '',
-              type: type,
+              data_type: data_type,
               var_name: block_title_naming[:var_name]
             }
           end

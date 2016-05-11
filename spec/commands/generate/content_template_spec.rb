@@ -70,17 +70,17 @@ RSpec.describe LiveEditor::CLI::Main do
           expect(new_blocks[0]['title']).to eql 'Title'
           expect(new_blocks[0]['description']).to eql ''
           expect(new_blocks[0]['var_name']).to eql 'title'
-          expect(new_blocks[0]['type']).to eql 'text'
+          expect(new_blocks[0]['data_type']).to eql 'text'
 
           expect(new_blocks[1]['title']).to eql 'Photo'
           expect(new_blocks[1]['description']).to eql ''
           expect(new_blocks[1]['var_name']).to eql 'photo'
-          expect(new_blocks[1]['type']).to eql 'image'
+          expect(new_blocks[1]['data_type']).to eql 'image'
 
           expect(new_blocks[2]['title']).to eql 'Map'
           expect(new_blocks[2]['description']).to eql ''
           expect(new_blocks[2]['var_name']).to eql 'map'
-          expect(new_blocks[2]['type']).to eql 'google_map'
+          expect(new_blocks[2]['data_type']).to eql 'google_map'
         end
       end
     end
