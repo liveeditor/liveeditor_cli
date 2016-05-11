@@ -210,9 +210,7 @@ module LiveEditor
           return 1
         end
 
-        client = LiveEditor::API::Client.new(domain: config['admin_domain'])
-        client.use_ssl = config.has_key?('use_ssl') ? config['use_ssl'] : true
-        LiveEditor::API::client = client
+        LiveEditor::CLI::configure_client!
 
         oauth = LiveEditor::API::OAuth.new
         response = oauth.login(email, password)

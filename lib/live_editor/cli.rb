@@ -6,27 +6,37 @@ require 'live_editor/cli/main'
 
 module LiveEditor
   module CLI
-    # Configures client to use for API requests based on stored credentials.
+    # Configures client to use for API requests based on stored credentials. The
+    # `client` object will be available for use at `LiveEditor::API::Client`.
     def self.configure_client!
+      # Read config object.
       config = config_config.config
+
+      # Set admin domain based on parts.
+      admin_domain_parts = config['admin_domain'].split(':')
+      admin_domain = admin_domain_parts.first
+      port = admin_domain_parts.last if admin_domain_parts.size == 2
+      # Whether or not to use SSL for requests.
+      use_ssl = !config.has_key?('use_ssl') || config['use_ssl']
+
+      # Configure what we have for the client so far.
+      client = LiveEditor::API::Client.new(domain: admin_domain, port: port, use_ssl: use_ssl)
+
+      # Fetch persisted login credentials
       n = Netrc.read
       email, password = n[config['admin_domain']]
 
       if email.present? && password.present?
-        admin_domain_parts = config['admin_domain'].split(':')
-        port = admin_domain_parts.last if admin_domain_parts.size == 2
-        use_ssl = !config.has_key?('use_ssl') || config['use_ssl']
-
         password_parts = password.split('|')
         access_token = password_parts.first
         refresh_token = password_parts.last
 
-        LiveEditor::API::client = LiveEditor::API::Client.new domain: config['admin_domain'], port: port,
-                                                              access_token: access_token,
-                                                              refresh_token: refresh_token, use_ssl: use_ssl
-      else
-        LiveEditor::API::client = LiveEditor::API::Client.new
+        client.access_token = access_token
+        client.refresh_token = refresh_token
       end
+
+      # Store as class variable so it can get used throughout the application.
+      LiveEditor::API::client = client
     end
 
     # Returns `ConfigConfig` object with data loaded in from the file at
