@@ -6,13 +6,16 @@ RSpec.describe LiveEditor::API::Themes::ContentTemplate do
                                 refresh_token: '0987654321'
   end
 
+  let(:theme_id) { SecureRandom.uuid }
+
   before { LiveEditor::API::client = client }
 
   describe '.create' do
     context 'with valid input' do
       let(:response) do
-        subject.class.create 'Blog Post', var_name: 'blargh_post', folder_name: 'post', unique: true,
-                             description: 'A description.', icon_title: 'blog'
+        LiveEditor::API::Themes::ContentTemplate.create theme_id, 'Blog Post', var_name: 'blargh_post',
+                                                        folder_name: 'post', unique: true,
+                                                        description: 'A description.', icon_title: 'blog'
       end
 
       let(:request_payload) do
@@ -49,7 +52,7 @@ RSpec.describe LiveEditor::API::Themes::ContentTemplate do
       end
 
       before do
-        stub_request(:post, 'http://example.api.liveeditorapp.com/themes/content-templates')
+        stub_request(:post, "http://example.api.liveeditorapp.com/themes/#{theme_id}/content-templates")
           .with(body: request_payload.to_json, headers: { 'Authorization' => 'Bearer 1234567890' })
           .to_return(status: 201, headers: { 'Content-Type' => 'application/vnd.api+json'}, body: response_payload.to_json)
       end
@@ -69,8 +72,9 @@ RSpec.describe LiveEditor::API::Themes::ContentTemplate do
 
     context 'with invalid input' do
       let(:response) do
-        subject.class.create '', var_name: 'blargh_post', folder_name: 'post', unique: true,
-                             description: 'A description.', icon_title: 'blog'
+        LiveEditor::API::Themes::ContentTemplate.create theme_id, '', var_name: 'blargh_post', folder_name: 'post',
+                                                        unique: true, description: 'A description.',
+                                                        icon_title: 'blog'
       end
 
       let(:request_payload) do
@@ -103,7 +107,7 @@ RSpec.describe LiveEditor::API::Themes::ContentTemplate do
       end
 
       before do
-        stub_request(:post, 'http://example.api.liveeditorapp.com/themes/content-templates')
+        stub_request(:post, "http://example.api.liveeditorapp.com/themes/#{theme_id}/content-templates")
           .with(body: request_payload.to_json, headers: { 'Authorization' => 'Bearer 1234567890' })
           .to_return(status: 422, headers: { 'Content-Type' => 'application/vnd.api+json'}, body: response_payload.to_json)
       end

@@ -1,7 +1,13 @@
 require 'spec_helper'
 
 RSpec.describe LiveEditor::API::Themes::Layout do
-  let(:client) { LiveEditor::API::Client.new(domain: 'example.liveeditorapp.com', access_token: '1234567890', refresh_token: '0987654321') }
+  let(:client) do
+    LiveEditor::API::Client.new domain: 'example.liveeditorapp.com', access_token: '1234567890',
+                                refresh_token: '0987654321'
+  end
+
+  let(:theme_id) { SecureRandom.uuid }
+
   before { LiveEditor::API::client = client }
 
   describe '.create' do
@@ -20,8 +26,8 @@ RSpec.describe LiveEditor::API::Themes::Layout do
       end
 
       let(:response) do
-        subject.class.create 'Home', 'home_layout.liquid', content, description: 'A description.',
-                             unique: true
+        LiveEditor::API::Themes::Layout.create theme_id, 'Home', 'home_layout.liquid', content,
+                                               description: 'A description.', unique: true
       end
 
       let(:request_payload) do
@@ -43,7 +49,7 @@ RSpec.describe LiveEditor::API::Themes::Layout do
         {
           'data' => {
             'type' => 'layouts',
-            'id' => '1234',
+            'id' => SecureRandom.uuid,
             'attributes' => {
               'title' => 'Home',
               'file-name' => 'home_layout.liquid',
@@ -72,7 +78,7 @@ RSpec.describe LiveEditor::API::Themes::Layout do
       end
 
       before do
-        stub_request(:post, 'http://example.api.liveeditorapp.com/themes/layouts')
+        stub_request(:post, "http://example.api.liveeditorapp.com/themes/#{theme_id}/layouts")
           .with(body: request_payload.to_json, headers: { 'Authorization' => 'Bearer 1234567890' })
           .to_return(status: 201, headers: { 'Content-Type' => 'application/vnd.api+json'}, body: response_payload.to_json)
       end
@@ -104,7 +110,10 @@ RSpec.describe LiveEditor::API::Themes::Layout do
         content.strip
       end
 
-      let(:response) { subject.class.create 'Home', '', content, description: 'A description.', unique: true }
+      let(:response) do
+        LiveEditor::API::Themes::Layout.create theme_id, 'Home', '', content, description: 'A description.',
+                                               unique: true
+      end
 
       let(:request_payload) do
         {
@@ -135,7 +144,7 @@ RSpec.describe LiveEditor::API::Themes::Layout do
       end
 
       before do
-        stub_request(:post, 'http://example.api.liveeditorapp.com/themes/layouts')
+        stub_request(:post, "http://example.api.liveeditorapp.com/themes/#{theme_id}/layouts")
           .with(body: request_payload.to_json, headers: { 'Authorization' => 'Bearer 1234567890' })
           .to_return(status: 422, headers: { 'Content-Type' => 'application/vnd.api+json'}, body: response_payload.to_json)
       end

@@ -10,17 +10,21 @@ module LiveEditor
           #
           # Arguments:
           #
-          # -  `file` - File object.
-          def self.create(file, file_name, content_type)
-            signature, response = upload_file_to_s3(file, file_name, content_type)
-            send_upload_to_live_editor(file, file_name, signature)
+          # -  `theme_id` - ID of theme that the upload will be associated with.
+          # -  `file` - File object with file to upload read in.
+          # -  `file_name` - Name of file, including path from theme's `assets`
+          #    folder.
+          # -  `content_type` - MIME type to associate with file.
+          def self.create(theme_id, file, file_name, content_type)
+            signature, response = upload_file_to_s3(theme_id, file, file_name, content_type)
+            send_upload_to_live_editor(theme_id, file, file_name, signature)
           end
 
         private
 
           # Sends info about upload to Live Editor for further processing.
-          def self.send_upload_to_live_editor(file, file_name, signature)
-            LiveEditor::API::client.post('/themes/assets/uploads', payload: {
+          def self.send_upload_to_live_editor(theme_id, file, file_name, signature)
+            LiveEditor::API::client.post("/themes/#{theme_id}/assets/uploads", payload: {
               data: {
                 type: 'asset-uploads',
                 attributes: {
@@ -34,8 +38,8 @@ module LiveEditor
           end
 
           # Uploads file to S3 store and returns signature that was generated.
-          def self.upload_file_to_s3(file, file_name, content_type)
-            response = LiveEditor::API::Themes::Assets::Signature::create(file_name, content_type)
+          def self.upload_file_to_s3(theme_id, file, file_name, content_type)
+            response = LiveEditor::API::Themes::Assets::Signature::create(theme_id, file_name, content_type)
             signature = response.parsed_body
             uri = URI.parse(signature['endpoint'])
 

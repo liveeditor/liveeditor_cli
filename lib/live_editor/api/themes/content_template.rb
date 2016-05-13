@@ -6,6 +6,7 @@ module LiveEditor
         #
         # Required arguments:
         #
+        # -  `theme_id` - ID of theme to associate this content template with.
         # -  `title` - Title of content template.
         #
         # Optional attributes:
@@ -19,10 +20,10 @@ module LiveEditor
         #    once per page. (Defaults to `false`.)
         # -  `icon_title` - Title of icon to use to represent the content
         #     template.
-        def self.create(title, attributes = {})
+        def self.create(theme_id, title, attributes = {})
           attributes[:unique] ||= false
 
-          LiveEditor::API::client.post('/themes/content-templates', payload: {
+          LiveEditor::API::client.post("/themes/#{theme_id}/content-templates", payload: {
             data: {
               type: 'content-templates',
               attributes: {

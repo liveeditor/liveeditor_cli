@@ -6,6 +6,8 @@ module LiveEditor
         #
         # Required arguments:
         #
+        # -  `theme_id` - ID of theme that the content template is associated
+        #    with.
         # -  `content_template_id` - ID of content template record to associate
         #    this block with.
         # -  `title` - Title of block as it will be displayed to content authors
@@ -27,11 +29,11 @@ module LiveEditor
         #    be able to mark up this text within predefined block-level elements
         #    in your display templates, but with the ability for content authors
         #    to still use inline-formatting tags like `<strong>` and `<em>`.
-        def self.create(content_template_id, title, data_type, position, attributes = {})
+        def self.create(theme_id, content_template_id, title, data_type, position, attributes = {})
           attributes[:required] ||= false
           attributes[:inline] ||= false
 
-          LiveEditor::API::client.post("/themes/content-templates/#{content_template_id}/blocks", payload: {
+          LiveEditor::API::client.post("/themes/#{theme_id}/content-templates/#{content_template_id}/blocks", payload: {
             data: {
               type: 'blocks',
               attributes: {

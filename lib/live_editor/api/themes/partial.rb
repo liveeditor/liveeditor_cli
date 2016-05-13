@@ -6,11 +6,12 @@ module LiveEditor
         #
         # Arguments:
         #
+        # -  `theme_id` - ID of theme to associate this partial with.
         # -  `file_name` - Name of partial file. For example: `header.liquid` or
         #    `blog/masthead.liquid`.
         # -  `content` - Contents of partial.
-        def self.create(file_name, content)
-          LiveEditor::API::client.post('/themes/partials', payload: {
+        def self.create(theme_id, file_name, content)
+          LiveEditor::API::client.post("/themes/#{theme_id}/partials", payload: {
             data: {
               type: 'partials',
               attributes: {

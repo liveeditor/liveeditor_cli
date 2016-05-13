@@ -6,6 +6,8 @@ module LiveEditor
         #
         # Required arguments:
         #
+        # -  `theme_id` - ID of theme that the content template is associated
+        #    with.
         # -  `content_template_id` - ID of content template record to associate
         #    this block with.
         # -  `title` - Title of block as it will be displayed to content authors
@@ -20,8 +22,8 @@ module LiveEditor
         #    display for content based on this content template.
         # -  `file_name` - Name of display file within the theme's content
         #    template folder.
-        def self.create(content_template_id, title, content, position, attributes = {})
-          LiveEditor::API::client.post("/themes/content-templates/#{content_template_id}/displays", payload: {
+        def self.create(theme_id, content_template_id, title, content, position, attributes = {})
+          LiveEditor::API::client.post("/themes/#{theme_id}/content-templates/#{content_template_id}/displays", payload: {
             data: {
               type: 'blocks',
               attributes: {

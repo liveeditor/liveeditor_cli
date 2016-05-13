@@ -1,5 +1,6 @@
 require 'live_editor/api/response'
 require 'live_editor/api/oauth'
+require 'live_editor/api/theme'
 require 'live_editor/api/themes'
 require 'live_editor/api/themes/assets/signature'
 require 'live_editor/api/themes/assets/upload'

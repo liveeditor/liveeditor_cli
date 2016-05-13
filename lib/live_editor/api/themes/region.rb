@@ -6,6 +6,7 @@ module LiveEditor
         #
         # Required arguments:
         #
+        # -  `theme_id` - ID of theme that the layout is associated with.
         # -  `layout_id` - ID of layout.
         # -  `id` - ID of region.
         # -  `attributes` - Hash of attributes with new values to update.
@@ -20,7 +21,7 @@ module LiveEditor
         #    this region.
         # -  `content_templates` - Array of IDs of content templates to include
         #    in the `content-templates` relationship payload.
-        def self.update(layout_id, id, attributes = {})
+        def self.update(theme_id, layout_id, id, attributes = {})
           payload = {
             data: {
               type: 'regions',
@@ -45,7 +46,7 @@ module LiveEditor
             end
           end
 
-          LiveEditor::API::client.patch("/themes/layouts/#{layout_id}/regions/#{id}", payload: payload)
+          LiveEditor::API::client.patch("/themes/#{theme_id}/layouts/#{layout_id}/regions/#{id}", payload: payload)
         end
       end
     end

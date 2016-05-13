@@ -138,11 +138,8 @@ NETRC
                                   access_token: '1234567890', refresh_token: '0987654321'
     end
 
-    let(:response) do
-      LiveEditor::CLI::request do
-        LiveEditor::API::Themes::Layout.create('Product', 'product_layout.liquid', '<html></html>')
-      end
-    end
+    let(:layout_id) { SecureRandom.uuid }
+    let(:response)  { LiveEditor::CLI::request { LiveEditor::API::Theme.create } }
 
     before do
       LiveEditor::API::client = client
@@ -161,9 +158,10 @@ NETRC
 
       before do
         # First call to endpoint is unsuccessful.
-        stub_request(:post, 'http://example.api.liveeditorapp.com/themes/layouts')
+        stub_request(:post, 'http://example.api.liveeditorapp.com/themes')
           .with(headers: { 'Authorization' => 'Bearer 1234567890' })
-          .to_return(status: 401, headers: { 'Content-Type' => 'application/json' }, body: { error: 'Unauthorized request' }.to_json)
+          .to_return(status: 401, headers: { 'Content-Type' => 'application/json' },
+                     body: { error: 'Unauthorized request' }.to_json)
 
         # Auto-refresh of OAuth token when first try to an endpoint returns
         # unauthorized.
@@ -171,7 +169,7 @@ NETRC
           .to_return(status: 200, body: { access_token: '0987654321', refresh_token: '1234567890' }.to_json)
 
         # Second call to endpoint is successful.
-        stub_request(:post, 'http://example.api.liveeditorapp.com/themes/layouts')
+        stub_request(:post, 'http://example.api.liveeditorapp.com/themes')
           .with(headers: { 'Authorization' => 'Bearer 0987654321' })
           .to_return(status: 201, headers: { 'Content-Type' => 'application/vnd.api+json'}, body: { data: {} }.to_json)
 
@@ -185,7 +183,7 @@ NETRC
 
     context 'without refreshed credentials' do
       before do
-        stub_request(:post, 'http://example.api.liveeditorapp.com/themes/layouts')
+        stub_request(:post, 'http://example.api.liveeditorapp.com/themes')
           .to_return(status: 201, headers: { 'Content-Type' => 'application/vnd.api+json'}, body: { data: {} }.to_json)
 
         response

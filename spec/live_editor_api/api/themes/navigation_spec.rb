@@ -1,7 +1,13 @@
 require 'spec_helper'
 
 RSpec.describe LiveEditor::API::Themes::Navigation do
-  let(:client) { LiveEditor::API::Client.new(domain: 'example.liveeditorapp.com', access_token: '1234567890', refresh_token: '0987654321') }
+  let(:client) do
+    LiveEditor::API::Client.new domain: 'example.liveeditorapp.com', access_token: '1234567890',
+                                refresh_token: '0987654321'
+  end
+
+  let(:theme_id) { SecureRandom.uuid }
+
   before { LiveEditor::API::client = client }
 
   describe '.create' do
@@ -21,7 +27,7 @@ RSpec.describe LiveEditor::API::Themes::Navigation do
 
     context 'with minimum valid input' do
       let(:response) do
-        subject.class.create('Global', 'global_navigation.liquid', content)
+        LiveEditor::API::Themes::Navigation.create(theme_id, 'Global', 'global_navigation.liquid', content)
       end
 
       let(:request_payload) do
@@ -43,7 +49,7 @@ RSpec.describe LiveEditor::API::Themes::Navigation do
         {
           'data' => {
             'type' => 'navigations',
-            'id' => '1234',
+            'id' => SecureRandom.uuid,
             'attributes' => {
               'title' => 'Global',
               'file-name' => 'global_navigation.liquid',
@@ -56,7 +62,7 @@ RSpec.describe LiveEditor::API::Themes::Navigation do
       end
 
       before do
-        stub_request(:post, 'http://example.api.liveeditorapp.com/themes/navigations')
+        stub_request(:post, "http://example.api.liveeditorapp.com/themes/#{theme_id}/navigations")
           .with(body: request_payload.to_json, headers: { 'Authorization' => 'Bearer 1234567890' })
           .to_return(status: 201, headers: { 'Content-Type' => 'application/vnd.api+json'}, body: response_payload.to_json)
       end
@@ -76,8 +82,8 @@ RSpec.describe LiveEditor::API::Themes::Navigation do
 
     context 'with fully-loaded valid input' do
       let(:response) do
-        subject.class.create 'Global', 'global_navigation.liquid', content, var_name: 'glob',
-                             description: 'A description.'
+        LiveEditor::API::Themes::Navigation.create theme_id, 'Global', 'global_navigation.liquid', content,
+                                                   var_name: 'glob', description: 'A description.'
       end
 
       let(:request_payload) do
@@ -99,7 +105,7 @@ RSpec.describe LiveEditor::API::Themes::Navigation do
         {
           'data' => {
             'type' => 'navigations',
-            'id' => '1234',
+            'id' => SecureRandom.uuid,
             'attributes' => {
               'title' => 'Global',
               'file-name' => 'global_navigation.liquid',
@@ -112,7 +118,7 @@ RSpec.describe LiveEditor::API::Themes::Navigation do
       end
 
       before do
-        stub_request(:post, 'http://example.api.liveeditorapp.com/themes/navigations')
+        stub_request(:post, "http://example.api.liveeditorapp.com/themes/#{theme_id}/navigations")
           .with(body: request_payload.to_json, headers: { 'Authorization' => 'Bearer 1234567890' })
           .to_return(status: 201, headers: { 'Content-Type' => 'application/vnd.api+json'}, body: response_payload.to_json)
       end
@@ -131,7 +137,7 @@ RSpec.describe LiveEditor::API::Themes::Navigation do
     end # with fully-loaded valid input
 
     context 'with invalid input' do
-      let(:response) { subject.class.create('', 'global_navigation.liquid', content) }
+      let(:response) { LiveEditor::API::Themes::Navigation.create(theme_id, '', 'global_navigation.liquid', content) }
 
       let(:request_payload) do
         {
@@ -162,7 +168,7 @@ RSpec.describe LiveEditor::API::Themes::Navigation do
       end
 
       before do
-        stub_request(:post, 'http://example.api.liveeditorapp.com/themes/navigations')
+        stub_request(:post, "http://example.api.liveeditorapp.com/themes/#{theme_id}/navigations")
           .with(body: request_payload.to_json, headers: { 'Authorization' => 'Bearer 1234567890' })
           .to_return(status: 422, headers: { 'Content-Type' => 'application/vnd.api+json'}, body: response_payload.to_json)
       end

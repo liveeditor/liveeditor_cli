@@ -241,6 +241,16 @@ module LiveEditor
           return
         end
 
+        # Create theme version to reference in following requests.
+        say 'Creating theme...'
+        response = LiveEditor::CLI::request { LiveEditor::API::Theme.create }
+
+        if response.success?
+          theme_id = response.parsed_body['data']['id']
+        else
+          return LiveEditor::CLI::display_server_errors_for(response)
+        end
+
         # Upload assets.
         say 'Uploading assets...'
         files = Dir.glob(theme_root + '/assets/**/*').reject { |file| File.directory?(file) }
@@ -254,7 +264,7 @@ module LiveEditor
 
           File.open(file) do |file_to_upload|
             response = LiveEditor::CLI::request do
-              LiveEditor::API::Themes::Assets::Upload.create(file_to_upload, file_name, content_type)
+              LiveEditor::API::Themes::Assets::Upload.create(theme_id, file_to_upload, file_name, content_type)
             end
           end
 
@@ -278,7 +288,7 @@ module LiveEditor
 
             File.open(file) do |file_to_upload|
               response = LiveEditor::CLI::request do
-                LiveEditor::API::Themes::Partial.create(file_name, file_to_upload.read)
+                LiveEditor::API::Themes::Partial.create(theme_id, file_name, file_to_upload.read)
               end
             end
 
@@ -303,7 +313,7 @@ module LiveEditor
 
             # Create navigation record via API.
             response = LiveEditor::CLI::request do
-              LiveEditor::API::Themes::Navigation.create nav_config['title'], file_name, content,
+              LiveEditor::API::Themes::Navigation.create theme_id, nav_config['title'], file_name, content,
                                                          description: nav_config['description'],
                                                          var_name: nav_config['var_name']
             end
@@ -329,7 +339,7 @@ module LiveEditor
 
             # Create base content template record via API.
             response = LiveEditor::CLI::request do
-              LiveEditor::API::Themes::ContentTemplate.create content_template_config['title'],
+              LiveEditor::API::Themes::ContentTemplate.create theme_id, content_template_config['title'],
                 var_name: content_template_config['var_name'],
                 folder_name: content_template_config['folder_name'],
                 description: content_template_config['description'],
@@ -346,7 +356,7 @@ module LiveEditor
             if content_template_config['blocks'].present?
               content_template_config['blocks'].each_with_index do |block_config, index|
                 block_response = LiveEditor::CLI::request do
-                  LiveEditor::API::Themes::Block.create content_template_id, block_config['title'],
+                  LiveEditor::API::Themes::Block.create theme_id, content_template_id, block_config['title'],
                     block_config['data_type'], index,
                     var_name: block_config['var_name'],
                     description: block_config['description'],
@@ -386,7 +396,7 @@ module LiveEditor
                 # Create display record via API.
                 File.open(file) do |file_to_upload|
                   display_response = LiveEditor::CLI::request do
-                    LiveEditor::API::Themes::Display.create content_template_id, display_config['title'],
+                    LiveEditor::API::Themes::Display.create theme_id, content_template_id, display_config['title'],
                       file_to_upload.read, index,
                       description: display_config['description'],
                       file_name: display_config['file_name']
@@ -425,7 +435,7 @@ module LiveEditor
 
           File.open(file) do |file_to_upload|
             response = LiveEditor::CLI::request do
-              LiveEditor::API::Themes::Layout.create config_entry['title'], file_name, file_to_upload.read,
+              LiveEditor::API::Themes::Layout.create theme_id, config_entry['title'], file_name, file_to_upload.read,
                                                      description: config_entry['description'],
                                                      unique: config_entry['unique']
             end
@@ -487,7 +497,7 @@ module LiveEditor
                 region_id = server_region['id']
 
                 response = LiveEditor::CLI::request do
-                  LiveEditor::API::Themes::Region.update(layout_id, region_id, region_attrs)
+                  LiveEditor::API::Themes::Region.update(theme_id, layout_id, region_id, region_attrs)
                 end
 
                 if response.error?

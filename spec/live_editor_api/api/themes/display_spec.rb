@@ -6,13 +6,17 @@ RSpec.describe LiveEditor::API::Themes::Display do
                                 refresh_token: '0987654321'
   end
 
+  let(:theme_id) { SecureRandom.uuid }
+  let(:content_template_id) { SecureRandom.uuid }
+
   before { LiveEditor::API::client = client }
 
   describe '.create' do
     context 'with valid input' do
       let(:response) do
-        subject.class.create 1234, 'Full Article', '<p>Some content.</p>', 1, description: 'A description.',
-                             default_display: true, file_name: 'full_article_display.liquid'
+        LiveEditor::API::Themes::Display.create theme_id, content_template_id, 'Full Article',
+                                                '<p>Some content.</p>', 1, description: 'A description.',
+                                                default_display: true, file_name: 'full_article_display.liquid'
       end
 
       let(:request_payload) do
@@ -35,7 +39,7 @@ RSpec.describe LiveEditor::API::Themes::Display do
         {
           'data' => {
             'type' => 'blocks',
-            'id' => '1234',
+            'id' => SecureRandom.uuid,
             'attributes' => {
               'title' => 'Full Article',
               'content' => '<p>Some content.</p>',
@@ -49,7 +53,7 @@ RSpec.describe LiveEditor::API::Themes::Display do
       end
 
       before do
-        stub_request(:post, 'http://example.api.liveeditorapp.com/themes/content-templates/1234/displays')
+        stub_request(:post, "http://example.api.liveeditorapp.com/themes/#{theme_id}/content-templates/#{content_template_id}/displays")
           .with(body: request_payload.to_json, headers: { 'Authorization' => 'Bearer 1234567890' })
           .to_return(status: 201, headers: { 'Content-Type' => 'application/vnd.api+json'}, body: response_payload.to_json)
       end
@@ -69,8 +73,9 @@ RSpec.describe LiveEditor::API::Themes::Display do
 
     context 'with invalid input' do
       let(:response) do
-        subject.class.create 1234, '', '<p>Some content.</p>', 1, description: 'A description.',
-                             default_display: true, file_name: 'full_article_display.liquid'
+        LiveEditor::API::Themes::Display.create theme_id, content_template_id, '', '<p>Some content.</p>', 1,
+                                                description: 'A description.', default_display: true,
+                                                file_name: 'full_article_display.liquid'
       end
 
       let(:request_payload) do
@@ -103,7 +108,7 @@ RSpec.describe LiveEditor::API::Themes::Display do
       end
 
       before do
-        stub_request(:post, 'http://example.api.liveeditorapp.com/themes/content-templates/1234/displays')
+        stub_request(:post, "http://example.api.liveeditorapp.com/themes/#{theme_id}/content-templates/#{content_template_id}/displays")
           .with(body: request_payload.to_json, headers: { 'Authorization' => 'Bearer 1234567890' })
           .to_return(status: 422, headers: { 'Content-Type' => 'application/vnd.api+json'}, body: response_payload.to_json)
       end

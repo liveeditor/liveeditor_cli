@@ -6,6 +6,7 @@ module LiveEditor
         #
         # Required arguments:
         #
+        # -  `theme_id` - ID of theme to associate this layout with.
         # -  `title` - Title of layout.
         # -  `file_name` - Name of layout file. For example:
         #    `home_layout.liquid`.
@@ -15,10 +16,10 @@ module LiveEditor
         # -  `description` - Description of layout.
         # -  `unique` - Whether or not only one page in the entire site may
         #    reference this layout. (Defaults to `false`.)
-        def self.create(title, file_name, content, attributes = {})
+        def self.create(theme_id, title, file_name, content, attributes = {})
           attributes[:unique] ||= false
 
-          LiveEditor::API::client.post('/themes/layouts', payload: {
+          LiveEditor::API::client.post("/themes/#{theme_id}/layouts", payload: {
             data: {
               type: 'layouts',
               attributes: {

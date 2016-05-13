@@ -6,6 +6,7 @@ module LiveEditor
         #
         # Required arguments:
         #
+        # -  `theme_id` - ID of theme to associate this navigation menu with.
         # -  `title` - Title of layout.
         # -  `file_name` - Name of navigation file containing Liquid markup.
         #    For example, `global_navigation.liquid`.
@@ -20,8 +21,8 @@ module LiveEditor
         #    Team," the default value to use within the code would be
         #    `executive_team`).
         # -  `description` - Description of navigation menu.
-        def self.create(title, file_name, content, attributes = {})
-          LiveEditor::API::client.post('/themes/navigations', payload: {
+        def self.create(theme_id, title, file_name, content, attributes = {})
+          LiveEditor::API::client.post("/themes/#{theme_id}/navigations", payload: {
             data: {
               type: 'navigations',
               attributes: {

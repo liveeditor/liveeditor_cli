@@ -6,13 +6,17 @@ RSpec.describe LiveEditor::API::Themes::Block do
                                 refresh_token: '0987654321'
   end
 
+  let(:theme_id) { SecureRandom.uuid }
+  let(:content_template_id) { SecureRandom.uuid }
+
   before { LiveEditor::API::client = client }
 
   describe '.create' do
     context 'with valid input' do
       let(:response) do
-        subject.class.create 1234, 'Title', 'text', 0, var_name: 'title_1', description: 'A description.',
-                             required: true, inline: true
+        LiveEditor::API::Themes::Block.create theme_id, content_template_id, 'Title', 'text', 0,
+                                              var_name: 'title_1', description: 'A description.', required: true,
+                                              inline: true
       end
 
       let(:request_payload) do
@@ -51,7 +55,7 @@ RSpec.describe LiveEditor::API::Themes::Block do
       end
 
       before do
-        stub_request(:post, 'http://example.api.liveeditorapp.com/themes/content-templates/1234/blocks')
+        stub_request(:post, "http://example.api.liveeditorapp.com/themes/#{theme_id}/content-templates/#{content_template_id}/blocks")
           .with(body: request_payload.to_json, headers: { 'Authorization' => 'Bearer 1234567890' })
           .to_return(status: 201, headers: { 'Content-Type' => 'application/vnd.api+json'}, body: response_payload.to_json)
       end
@@ -71,8 +75,8 @@ RSpec.describe LiveEditor::API::Themes::Block do
 
     context 'with invalid input' do
       let(:response) do
-        subject.class.create 1234, '', 'text', 0, var_name: 'title_1', description: 'A description.', required: true,
-                             inline: true
+        LiveEditor::API::Themes::Block.create theme_id, content_template_id, '', 'text', 0, var_name: 'title_1',
+                                              description: 'A description.', required: true, inline: true
       end
 
       let(:request_payload) do
@@ -106,7 +110,7 @@ RSpec.describe LiveEditor::API::Themes::Block do
       end
 
       before do
-        stub_request(:post, 'http://example.api.liveeditorapp.com/themes/content-templates/1234/blocks')
+        stub_request(:post, "http://example.api.liveeditorapp.com/themes/#{theme_id}/content-templates/#{content_template_id}/blocks")
           .with(body: request_payload.to_json, headers: { 'Authorization' => 'Bearer 1234567890' })
           .to_return(status: 422, headers: { 'Content-Type' => 'application/vnd.api+json'}, body: response_payload.to_json)
       end
