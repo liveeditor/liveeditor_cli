@@ -37,6 +37,23 @@ module LiveEditor
         @user_agent = options[:user_agent]
       end
 
+      # Performs a `GET` operation on the Live Editor API.
+      #
+      # Arguments:
+      #
+      # -  `url` - URL path to request. Example: `/site`.
+      #
+      # Options:
+      #
+      # -  `authorize` - Whether or not the API request needs to be authorized
+      #    with an access token. Defaults to `true`.
+      # -  `json_api` - Boolean that indicates whether or not this request must
+      #    follow the JSON API specification. Defaults to `true`.
+      def get(url, options = {})
+        uri = self.uri_for(url)
+        run_request_for(uri, Net::HTTP::Get.new(uri), options)
+      end
+
       # Performs a `PATCH` operation on the Live Editor API.
       #
       # Arguments:

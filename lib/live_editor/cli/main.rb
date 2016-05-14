@@ -241,6 +241,11 @@ module LiveEditor
           return
         end
 
+        # Get site data to see if it has a live theme to compare against.
+        response = LiveEditor::CLI::request { LiveEditor::API::Site::current(include: 'theme') }
+        return LiveEditor::CLI::display_server_errors_for(response) if response.error?
+        site = response.parsed_body['included'].select { |inc| inc['type' == 'themes'] }.first
+
         # Create theme version to reference in following requests.
         say 'Creating theme...'
         response = LiveEditor::CLI::request { LiveEditor::API::Theme.create }

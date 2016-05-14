@@ -1,5 +1,6 @@
 require 'live_editor/api/response'
 require 'live_editor/api/oauth'
+require 'live_editor/api/site'
 require 'live_editor/api/theme'
 require 'live_editor/api/themes'
 require 'live_editor/api/themes/assets/signature'
@@ -27,6 +28,16 @@ module LiveEditor
     # Returns client to use for calls to API.
     def self.client
       @@client
+    end
+
+    # Returns query string for single or array of string relationship includes.
+    def self.include_query_string_for(include)
+      if include.present?
+        includes = include.is_a?(Array) ? include : [include]
+        "include=#{includes.join(',')}"
+      else
+        ''
+      end
     end
   end
 end

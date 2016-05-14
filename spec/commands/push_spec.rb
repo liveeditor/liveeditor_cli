@@ -1,6 +1,7 @@
 require 'spec_helper'
 
 RSpec.describe LiveEditor::CLI::Main do
+  let(:site_id)             { SecureRandom.uuid }
   let(:theme_id)            { SecureRandom.uuid }
   let(:content_template_id) { SecureRandom.uuid }
   let(:block_id)            { SecureRandom.uuid }
@@ -8,6 +9,30 @@ RSpec.describe LiveEditor::CLI::Main do
   let(:layout_id)           { SecureRandom.uuid }
   let(:region_id)           { SecureRandom.uuid }
   let(:navigation_id)       { SecureRandom.uuid }
+
+  let(:site_response_payload) do
+    {
+      'data' => {
+        'type' => 'sites',
+        'id' => site_id,
+        'attributes' => {
+          'title' => 'Example Site',
+          'subdomain-slug' => 'example'
+        },
+        'relationships' => {
+          'theme' => {
+            'data' => {
+              'type' => 'themes',
+              'id' => theme_id
+            }
+          }
+        }
+      },
+      'included' => [
+        theme_response_payload['data']
+      ]
+    }
+  end
 
   let(:theme_response_payload) do
     {
@@ -26,6 +51,9 @@ RSpec.describe LiveEditor::CLI::Main do
       include_context 'with image asset'
 
       it 'uploads the image asset' do
+        stub_request(:get, 'http://example.api.liveeditorapp.com/site?include=theme')
+          .to_return(headers: { 'Content-Type' => 'application/vnd.api+json' }, body: site_response_payload.to_json)
+
         stub_request(:post, 'http://example.api.liveeditorapp.com/themes')
           .to_return(status: 201, body: theme_response_payload.to_json,
                      headers: { 'Content-Type' => 'application/vnd.api+json' })
@@ -54,6 +82,9 @@ RSpec.describe LiveEditor::CLI::Main do
       include_context 'with partial'
 
       it 'uploads the partial content' do
+        stub_request(:get, 'http://example.api.liveeditorapp.com/site?include=theme')
+          .to_return(headers: { 'Content-Type' => 'application/vnd.api+json' }, body: site_response_payload.to_json)
+
         stub_request(:post, 'http://example.api.liveeditorapp.com/themes')
           .to_return(status: 201, body: theme_response_payload.to_json,
                      headers: { 'Content-Type' => 'application/vnd.api+json' })
@@ -83,6 +114,9 @@ RSpec.describe LiveEditor::CLI::Main do
       end
 
       it 'uploads the partial content' do
+        stub_request(:get, 'http://example.api.liveeditorapp.com/site?include=theme')
+          .to_return(headers: { 'Content-Type' => 'application/vnd.api+json' }, body: site_response_payload.to_json)
+
         stub_request(:post, 'http://example.api.liveeditorapp.com/themes')
           .to_return(status: 201, body: theme_response_payload.to_json,
                      headers: { 'Content-Type' => 'application/vnd.api+json' })
@@ -126,6 +160,9 @@ RSpec.describe LiveEditor::CLI::Main do
       end
 
       it 'uploads the layout content' do
+        stub_request(:get, 'http://example.api.liveeditorapp.com/site?include=theme')
+          .to_return(headers: { 'Content-Type' => 'application/vnd.api+json' }, body: site_response_payload.to_json)
+
         stub_request(:post, 'http://example.api.liveeditorapp.com/themes')
           .to_return(status: 201, body: theme_response_payload.to_json,
                      headers: { 'Content-Type' => 'application/vnd.api+json' })
@@ -166,6 +203,9 @@ RSpec.describe LiveEditor::CLI::Main do
       end
 
       it 'aborts and displays server error' do
+        stub_request(:get, 'http://example.api.liveeditorapp.com/site?include=theme')
+          .to_return(headers: { 'Content-Type' => 'application/vnd.api+json' }, body: site_response_payload.to_json)
+
         stub_request(:post, 'http://example.api.liveeditorapp.com/themes')
           .to_return(status: 201, body: theme_response_payload.to_json,
                      headers: { 'Content-Type' => 'application/vnd.api+json' })
@@ -262,6 +302,9 @@ RSpec.describe LiveEditor::CLI::Main do
       end
 
       it 'uploads the layout content' do
+        stub_request(:get, 'http://example.api.liveeditorapp.com/site?include=theme')
+          .to_return(headers: { 'Content-Type' => 'application/vnd.api+json' }, body: site_response_payload.to_json)
+
         stub_request(:post, 'http://example.api.liveeditorapp.com/themes')
           .to_return(status: 201, body: theme_response_payload.to_json,
                      headers: { 'Content-Type' => 'application/vnd.api+json' })
@@ -354,6 +397,9 @@ RSpec.describe LiveEditor::CLI::Main do
       end
 
       before do
+        stub_request(:get, 'http://example.api.liveeditorapp.com/site?include=theme')
+          .to_return(headers: { 'Content-Type' => 'application/vnd.api+json' }, body: site_response_payload.to_json)
+
         stub_request(:post, 'http://example.api.liveeditorapp.com/themes')
           .to_return(status: 201, body: theme_response_payload.to_json,
                      headers: { 'Content-Type' => 'application/vnd.api+json' })
@@ -391,6 +437,9 @@ RSpec.describe LiveEditor::CLI::Main do
       end
 
       before do
+        stub_request(:get, 'http://example.api.liveeditorapp.com/site?include=theme')
+          .to_return(headers: { 'Content-Type' => 'application/vnd.api+json' }, body: site_response_payload.to_json)
+
         stub_request(:post, 'http://example.api.liveeditorapp.com/themes')
           .to_return(status: 201, body: theme_response_payload.to_json,
                      headers: { 'Content-Type' => 'application/vnd.api+json' })
@@ -440,6 +489,9 @@ RSpec.describe LiveEditor::CLI::Main do
       end
 
       it 'uploads the content template' do
+        stub_request(:get, 'http://example.api.liveeditorapp.com/site?include=theme')
+          .to_return(headers: { 'Content-Type' => 'application/vnd.api+json' }, body: site_response_payload.to_json)
+
         stub_request(:post, 'http://example.api.liveeditorapp.com/themes')
           .to_return(status: 201, body: theme_response_payload.to_json,
                      headers: { 'Content-Type' => 'application/vnd.api+json' })
@@ -486,6 +538,9 @@ RSpec.describe LiveEditor::CLI::Main do
       end
 
       before do
+        stub_request(:get, 'http://example.api.liveeditorapp.com/site?include=theme')
+          .to_return(headers: { 'Content-Type' => 'application/vnd.api+json' }, body: site_response_payload.to_json)
+
         stub_request(:post, 'http://example.api.liveeditorapp.com/themes')
           .to_return(status: 201, body: theme_response_payload.to_json,
                      headers: { 'Content-Type' => 'application/vnd.api+json' })
@@ -538,6 +593,9 @@ RSpec.describe LiveEditor::CLI::Main do
       end
 
       it 'uploads the content template' do
+        stub_request(:get, 'http://example.api.liveeditorapp.com/site?include=theme')
+          .to_return(headers: { 'Content-Type' => 'application/vnd.api+json' }, body: site_response_payload.to_json)
+
         stub_request(:post, 'http://example.api.liveeditorapp.com/themes')
           .to_return(status: 201, body: theme_response_payload.to_json,
                      headers: { 'Content-Type' => 'application/vnd.api+json' })
@@ -585,6 +643,9 @@ RSpec.describe LiveEditor::CLI::Main do
       end
 
       it 'uploads the content template' do
+        stub_request(:get, 'http://example.api.liveeditorapp.com/site?include=theme')
+          .to_return(headers: { 'Content-Type' => 'application/vnd.api+json' }, body: site_response_payload.to_json)
+
         stub_request(:post, 'http://example.api.liveeditorapp.com/themes')
           .to_return(status: 201, body: theme_response_payload.to_json,
                      headers: { 'Content-Type' => 'application/vnd.api+json' })
@@ -654,6 +715,9 @@ NAV
       end
 
       before do
+        stub_request(:get, 'http://example.api.liveeditorapp.com/site?include=theme')
+          .to_return(headers: { 'Content-Type' => 'application/vnd.api+json' }, body: site_response_payload.to_json)
+
         stub_request(:post, 'http://example.api.liveeditorapp.com/themes')
           .to_return(status: 201, body: theme_response_payload.to_json,
                      headers: { 'Content-Type' => 'application/vnd.api+json' })
@@ -700,6 +764,9 @@ NAV
       end
 
       before do
+        stub_request(:get, 'http://example.api.liveeditorapp.com/site?include=theme')
+          .to_return(headers: { 'Content-Type' => 'application/vnd.api+json' }, body: site_response_payload.to_json)
+
         stub_request(:post, 'http://example.api.liveeditorapp.com/themes')
           .to_return(status: 201, body: theme_response_payload.to_json,
                      headers: { 'Content-Type' => 'application/vnd.api+json' })
@@ -743,12 +810,5 @@ NAV
         expect(output).to include 'ERROR: You must be logged in. Run the `liveeditor login` command to login.'
       end
     end
-  end
-
-  context 'server error on theme creation' do
-    include_context 'minimal valid theme'
-    include_context 'within theme root'
-
-    # TODO
   end
 end
