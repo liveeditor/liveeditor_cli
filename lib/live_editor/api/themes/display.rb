@@ -16,6 +16,7 @@ module LiveEditor
         # -  `position` - Order in which to display this display in the editor.
         #
         # Optional attributes:
+        #
         # -  `description` - Description of display to display on editor
         #    interfaces.
         # -  `default_display` - Whether or not this display is the default

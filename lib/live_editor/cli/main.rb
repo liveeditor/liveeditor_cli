@@ -242,9 +242,21 @@ module LiveEditor
         end
 
         # Get site data to see if it has a live theme to compare against.
-        response = LiveEditor::CLI::request { LiveEditor::API::Site::current(include: 'theme') }
+        response = LiveEditor::CLI::request { LiveEditor::API::Site::current }
         return LiveEditor::CLI::display_server_errors_for(response) if response.error?
-        site = response.parsed_body['included'].select { |inc| inc['type' == 'themes'] }.first
+        site = response.parsed_body['data']
+
+        # If there is a current live theme, grab it.
+        if site['relationships']['theme']['data'].present?
+          response = LiveEditor::CLI::request do
+            LiveEditor::API::Theme::find site['relationships']['theme']['data']['id'],
+                                         include: %w(assets assets.asset partials navigations layouts layouts.regions content-templates content-templates.blocks content-templates.displays)
+          end
+
+          return LiveEditor::CLI::display_server_errors_for(response) if response.error?
+
+          current_theme = response.parsed_body
+        end
 
         # Create theme version to reference in following requests.
         say 'Creating theme...'
@@ -257,28 +269,69 @@ module LiveEditor
         end
 
         # Upload assets.
-        say 'Uploading assets...'
         files = Dir.glob(theme_root + '/assets/**/*').reject { |file| File.directory?(file) }
+        theme_asset_ids = []
 
-        files.each do |file|
-          file_name = file.sub(theme_root, '').sub('/assets/', '')
-          say('/assets/' + file_name)
+        if files.any?
+          say 'Uploading assets...'
 
-          content_type = LiveEditor::CLI::Uploads::ContentTypeDetector.new(file).detect
-          response = nil # Scope this outside of the File.open block below so we can access it aferward.
+          files.each do |file|
+            file_name = file.sub(theme_root, '').sub('/assets/', '')
+            response = nil # Scope this outside of the `File.open` block below so we can access it aferward.
 
-          File.open(file) do |file_to_upload|
-            response = LiveEditor::CLI::request do
-              LiveEditor::API::Themes::Assets::Upload.create(theme_id, file_to_upload, file_name, content_type)
+            File.open(file) do |file_to_upload|
+              # Determine whether or not this asset is already uploaded to the server.
+              if current_theme.present?
+                existing_assets = current_theme['included'].select do |asset|
+                  asset['attributes']['theme-path'] == file_name
+                end
+
+                matched_asset = find_theme_asset(existing_assets, file_to_upload, current_theme)
+              end
+
+              # If a matching asset was found, skip it and add to new theme.
+              if matched_asset.present?
+                say("/assets/#{file_name} - already uploaded, skipping")
+                theme_asset_ids << matched_asset['id']
+              else
+                say("/assets/#{file_name}")
+                content_type = LiveEditor::CLI::Uploads::ContentTypeDetector.new(file).detect
+
+                response = LiveEditor::CLI::request do
+                  LiveEditor::API::Themes::Assets::Upload.create(theme_id, file_to_upload, file_name, content_type)
+                end
+
+                theme_asset_ids << response.parsed_body['data']['id']
+              end
+            end
+
+            if response.present? && response.error?
+              say('ERROR', :red)
+              return LiveEditor::CLI::display_server_errors_for(response)
             end
           end
 
-          if response.error?
+          say ''
+        end
+
+        # Only update theme assets relationship if we're updating an existing
+        # theme or it's a brand new theme with assets.
+        if current_theme.present? || theme_asset_ids.any?
+          say 'Publishing assets...'
+          theme_asset_ids = theme_asset_ids.any? ? theme_asset_ids : nil
+
+          response = LiveEditor::CLI::request do
+            LiveEditor::API::Theme.update(theme_id, asset_ids: theme_asset_ids)
+          end
+
+          if response.present? && response.error?
             say('ERROR', :red)
             return LiveEditor::CLI::display_server_errors_for(response)
           end
+
+          say 'Published!'
+          say ''
         end
-        say ''
 
         # Upload partials.
         files = Dir.glob(theme_root + '/partials/**/*').reject { |file| File.directory?(file) }
@@ -415,16 +468,18 @@ module LiveEditor
               end
             end
           end
+
+          say ''
         end
-        say ''
 
         # Upload layouts.
-        say 'Uploading layouts...'
         layouts_config = LiveEditor::CLI::layouts_config
 
         files = Dir.glob(theme_root + '/layouts/**/*').reject do |file|
           File.directory?(file) || file == "#{theme_root}/layouts/layouts.json"
         end
+
+        say 'Uploading layouts...' if files.any?
 
         files.each_with_index do |file, index|
           file_name = file.sub(theme_root, '').sub('/layouts/', '')
@@ -515,6 +570,21 @@ module LiveEditor
           end
         end
 
+        # Make new theme live
+        say 'Publishing theme...'
+
+        response = LiveEditor::CLI::request do
+          LiveEditor::API::Site.update(theme_id: theme_id)
+        end
+
+        if response.success?
+          say 'Published!'
+        else
+          LiveEditor::CLI::display_server_errors_for(response)
+          return
+        end
+        say ''
+
       rescue LiveEditor::API::OAuthRefreshError => e
         say 'Your login credentials have expired. Please login again with the `liveeditor login` command', :red
         return
@@ -527,6 +597,31 @@ module LiveEditor
         def display_validator_messages(messages)
           messages.each do |message|
             say("#{message[:type].upcase}: #{message[:message]}", message_color_for(message[:type]))
+          end
+        end
+
+        # Returns whether or not a given file is already uploaded to the current
+        # theme based on name and fingerprint.
+        def find_theme_asset(existing_assets, file, current_theme, options = {})
+          return nil unless current_theme['included'].present?
+
+          # If found, compare its fingerprint.
+          if existing_assets.count > 0
+            fingerprint = Digest::MD5.hexdigest(file.read)
+
+            asset = existing_assets.select do |existing_asset|
+              # Find sub-asset
+              sub_asset = current_theme['included'].select do |asset|
+                asset['type'].start_with?('asset-') && asset['id'] == existing_asset['relationships']['asset']['data']['id']
+              end
+
+              fingerprint == sub_asset.first['attributes']['fingerprint']
+            end
+
+            asset.any? ? asset.first : nil
+          # If not found, return `nil`.
+          else
+            nil
           end
         end
 

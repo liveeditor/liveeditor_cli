@@ -11,7 +11,8 @@ module LiveEditor
         # -  `id` - ID of region.
         # -  `attributes` - Hash of attributes with new values to update.
         #
-        # Attributes:
+        # Optional attributes:
+        #
         # -  `title` - Title of region to display in editor interfaces.
         # -  `var_name` - Variable name used to reference the region from
         #    region tags in the layout's markup.
@@ -25,7 +26,7 @@ module LiveEditor
           payload = {
             data: {
               type: 'regions',
-              id: id.to_s,
+              id: id,
               attributes: {}
             }
           }

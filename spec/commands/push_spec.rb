@@ -1,5 +1,8 @@
 require 'spec_helper'
 
+# stub_request(:get, "http://example.api.liveeditorapp.com/themes/#{theme_id}?include=partials,navigations,layouts,layouts.regions,content-templates,content-templates.blocks,content-templates.displays")
+#   .to_return(headers: { 'Content-Type' => 'application/vnd.api+json' }, body: site_response_payload.to_json)
+
 RSpec.describe LiveEditor::CLI::Main do
   let(:site_id)             { SecureRandom.uuid }
   let(:theme_id)            { SecureRandom.uuid }
@@ -9,6 +12,8 @@ RSpec.describe LiveEditor::CLI::Main do
   let(:layout_id)           { SecureRandom.uuid }
   let(:region_id)           { SecureRandom.uuid }
   let(:navigation_id)       { SecureRandom.uuid }
+  let(:asset_id)            { SecureRandom.uuid }
+  let(:asset_image_id)      { SecureRandom.uuid }
 
   let(:site_response_payload) do
     {
@@ -21,16 +26,10 @@ RSpec.describe LiveEditor::CLI::Main do
         },
         'relationships' => {
           'theme' => {
-            'data' => {
-              'type' => 'themes',
-              'id' => theme_id
-            }
+            'data' => nil
           }
         }
-      },
-      'included' => [
-        theme_response_payload['data']
-      ]
+      }
     }
   end
 
@@ -38,20 +37,46 @@ RSpec.describe LiveEditor::CLI::Main do
     {
       'data' => {
         'type' => 'themes',
-        'id' => theme_id
+        'id' => theme_id,
+        'relationships' => {
+          'assets' => {
+            'data' => []
+          },
+          'layouts' => {
+            'data' => []
+          },
+          'content-templates' => {
+            'data' => []
+          },
+          'navigations' => {
+            'data' => []
+          },
+          'partials' => {
+            'data' => []
+          }
+        }
       }
     }
   end
 
   describe 'push' do
-    context 'logged in with image asset' do
+    context 'logged in with new image asset' do
       include_context 'minimal valid theme', false
       include_context 'within theme root'
       include_context 'logged in'
       include_context 'with image asset'
 
+      let(:upload_response) do
+        {
+          data: {
+            type: 'assets',
+            id: asset_id
+          }
+        }
+      end
+
       it 'uploads the image asset' do
-        stub_request(:get, 'http://example.api.liveeditorapp.com/site?include=theme')
+        stub_request(:get, 'http://example.api.liveeditorapp.com/site')
           .to_return(headers: { 'Content-Type' => 'application/vnd.api+json' }, body: site_response_payload.to_json)
 
         stub_request(:post, 'http://example.api.liveeditorapp.com/themes')
@@ -66,12 +91,289 @@ RSpec.describe LiveEditor::CLI::Main do
           .to_return(status: 200)
 
         stub_request(:post, "http://example.api.liveeditorapp.com/themes/#{theme_id}/assets/uploads")
-          .to_return(status: 202)
+          .to_return(status: 202, body: upload_response.to_json,
+                     headers: { 'Content-Type' => 'application/vnd.api+json' })
+
+        stub_request(:patch, "http://example.api.liveeditorapp.com/themes/#{theme_id}")
+          .to_return(status: 200)
+
+        stub_request(:patch, 'http://example.api.liveeditorapp.com/site')
+          .to_return(status: 200)
 
         output = capture(:stdout) { subject.push }
-        expect(output).to include 'Uploading assets...'
-        expect(output).to include '/assets/images/logo.png'
-        expect(output).to_not include 'ERROR'
+        expect(output).to include ['Uploading assets...', '/assets/images/logo.png'].join("\n")
+        expect(output).to include ['Publishing assets...', 'Published!'].join("\n")
+        expect(output).to include ['Publishing theme...', 'Published!'].join("\n")
+      end
+    end
+
+    context 'logged in with existing unchanged image asset' do
+      include_context 'minimal valid theme', false
+      include_context 'within theme root'
+      include_context 'logged in'
+      include_context 'with image asset'
+
+      before do
+        site_response_payload['data']['relationships']['theme']['data'] = {
+          'type' => 'themes',
+          'id' => theme_id
+        }
+
+        theme_response_payload['data']['relationships']['assets']['data'] << {
+          'type' => 'assets',
+          'id' => asset_id
+        }
+
+        theme_response_payload['included'] = [
+          {
+            'type' => 'assets',
+            'id' => asset_id,
+            'attributes' => {
+              'for-theme' => true,
+              'title' => nil,
+              'content-type' => 'image/png',
+              'type' => 'image',
+              'subtype' => 'png',
+              'theme-path' => 'images/logo.png'
+            },
+            'relationships' => {
+              'asset' => {
+                'data' => {
+                  'type' => 'asset-images',
+                  'id' => asset_image_id
+                }
+              }
+            }
+          },
+          {
+            'type' => 'asset-images',
+            'id' => asset_image_id,
+            'attributes' => {
+              'file-name' => 'logo.png',
+              'content-type' => 'image/png',
+              'file-size' => 12345,
+              'fingerprint' => 'e10adc3949ba59abbe56e057f20f883e'
+            },
+            'relationships' => {
+              'asset' => {
+                'data' => {
+                  'type' => 'assets',
+                  'id' => asset_id
+                }
+              }
+            }
+          }
+        ]
+      end
+
+      it 'skips the image asset' do
+        stub_request(:get, 'http://example.api.liveeditorapp.com/site')
+          .to_return(headers: { 'Content-Type' => 'application/vnd.api+json' }, body: site_response_payload.to_json)
+
+        stub_request(:get, "http://example.api.liveeditorapp.com/themes/#{theme_id}?include=assets,assets.asset,partials,navigations,layouts,layouts.regions,content-templates,content-templates.blocks,content-templates.displays")
+          .to_return(headers: { 'Content-Type' => 'application/vnd.api+json' }, body: theme_response_payload.to_json)
+
+        stub_request(:post, 'http://example.api.liveeditorapp.com/themes')
+          .to_return(status: 201, body: theme_response_payload.to_json,
+                     headers: { 'Content-Type' => 'application/vnd.api+json' })
+
+        stub_request(:patch, "http://example.api.liveeditorapp.com/themes/#{theme_id}")
+          .to_return(status: 200)
+
+        stub_request(:patch, 'http://example.api.liveeditorapp.com/site')
+          .to_return(status: 200)
+
+        output = capture(:stdout) { subject.push }
+        expect(output).to include ['Uploading assets...', '/assets/images/logo.png - already uploaded, skipping'].join("\n")
+        expect(output).to include ['Publishing assets...', 'Published!'].join("\n")
+        expect(output).to include ['Publishing theme...', 'Published!'].join("\n")
+      end
+    end
+
+    context 'logged in with existing changed image asset' do
+      include_context 'minimal valid theme', false
+      include_context 'within theme root'
+      include_context 'logged in'
+      include_context 'with image asset'
+
+      before do
+        site_response_payload['data']['relationships']['theme']['data'] = {
+          'type' => 'themes',
+          'id' => theme_id
+        }
+
+        theme_response_payload['data']['relationships']['assets']['data'] << {
+          'type' => 'assets',
+          'id' => asset_id
+        }
+
+        theme_response_payload['included'] = [
+          {
+            'type' => 'assets',
+            'id' => asset_id,
+            'attributes' => {
+              'for-theme' => true,
+              'title' => nil,
+              'content-type' => 'image/png',
+              'type' => 'image',
+              'subtype' => 'png',
+              'theme-path' => 'images/logo.png'
+            },
+            'relationships' => {
+              'asset' => {
+                'data' => {
+                  'type' => 'asset-images',
+                  'id' => asset_image_id
+                }
+              }
+            }
+          },
+          {
+            'type' => 'asset-images',
+            'id' => asset_image_id,
+            'attributes' => {
+              'file-name' => 'logo.png',
+              'content-type' => 'image/png',
+              'file-size' => 12345,
+              'fingerprint' => 'different-than-local'
+            },
+            'relationships' => {
+              'asset' => {
+                'data' => {
+                  'type' => 'assets',
+                  'id' => asset_id
+                }
+              }
+            }
+          }
+        ]
+      end
+
+      let(:upload_response) do
+        {
+          data: {
+            type: 'assets',
+            id: asset_id
+          }
+        }
+      end
+
+      it 'updates the image asset' do
+        stub_request(:get, 'http://example.api.liveeditorapp.com/site')
+          .to_return(headers: { 'Content-Type' => 'application/vnd.api+json' }, body: site_response_payload.to_json)
+
+        stub_request(:post, 'http://example.api.liveeditorapp.com/themes')
+          .to_return(status: 201, body: theme_response_payload.to_json,
+                     headers: { 'Content-Type' => 'application/vnd.api+json' })
+
+        stub_request(:get, "http://example.api.liveeditorapp.com/themes/#{theme_id}?include=assets,assets.asset,partials,navigations,layouts,layouts.regions,content-templates,content-templates.blocks,content-templates.displays")
+          .to_return(headers: { 'Content-Type' => 'application/vnd.api+json' }, body: theme_response_payload.to_json)
+
+        stub_request(:post, "http://example.api.liveeditorapp.com/themes/#{theme_id}/assets/signatures")
+          .to_return(status: 200, body: { endpoint: 'https://s3.amazonaws.com/bucket' }.to_json,
+                     headers: { 'Content-Type' => 'application/vnd.api+json' })
+
+        stub_request(:post, 'https://s3.amazonaws.com/bucket')
+          .to_return(status: 200)
+
+        stub_request(:post, "http://example.api.liveeditorapp.com/themes/#{theme_id}/assets/uploads")
+          .to_return(status: 202, body: upload_response.to_json,
+                     headers: { 'Content-Type' => 'application/vnd.api+json' })
+
+        stub_request(:patch, "http://example.api.liveeditorapp.com/themes/#{theme_id}")
+          .to_return(status: 200)
+
+        stub_request(:patch, 'http://example.api.liveeditorapp.com/site')
+          .to_return(status: 200)
+
+        output = capture(:stdout) { subject.push }
+        expect(output).to include ['Uploading assets...', '/assets/images/logo.png'].join("\n")
+        expect(output).to_not include 'already uploaded, skipping'
+        expect(output).to include ['Publishing assets...', 'Published!'].join("\n")
+        expect(output).to include ['Publishing theme...', 'Published!'].join("\n")
+      end
+    end
+
+    # TODO
+    context 'logged in with removed image asset' do
+      include_context 'minimal valid theme', false
+      include_context 'within theme root'
+      include_context 'logged in'
+
+      before do
+        site_response_payload['data']['relationships']['theme']['data'] = {
+          'type' => 'themes',
+          'id' => theme_id
+        }
+
+        theme_response_payload['data']['relationships']['assets']['data'] << {
+          'type' => 'assets',
+          'id' => asset_id
+        }
+
+        theme_response_payload['included'] = [
+          {
+            'type' => 'assets',
+            'id' => asset_id,
+            'attributes' => {
+              'for-theme' => true,
+              'title' => nil,
+              'content-type' => 'image/png',
+              'type' => 'image',
+              'subtype' => 'png',
+              'theme-path' => 'images/logo.png'
+            },
+            'relationships' => {
+              'asset' => {
+                'data' => {
+                  'type' => 'asset-images',
+                  'id' => asset_image_id
+                }
+              }
+            }
+          },
+          {
+            'type' => 'asset-images',
+            'id' => asset_image_id,
+            'attributes' => {
+              'file-name' => 'logo.png',
+              'content-type' => 'image/png',
+              'file-size' => 12345,
+              'fingerprint' => 'different-than-local'
+            },
+            'relationships' => {
+              'asset' => {
+                'data' => {
+                  'type' => 'assets',
+                  'id' => asset_id
+                }
+              }
+            }
+          }
+        ]
+      end
+
+      it 'does not upload or publish any assets' do
+        stub_request(:get, 'http://example.api.liveeditorapp.com/site')
+          .to_return(headers: { 'Content-Type' => 'application/vnd.api+json' }, body: site_response_payload.to_json)
+
+        stub_request(:post, 'http://example.api.liveeditorapp.com/themes')
+          .to_return(status: 201, body: theme_response_payload.to_json,
+                     headers: { 'Content-Type' => 'application/vnd.api+json' })
+
+        stub_request(:get, "http://example.api.liveeditorapp.com/themes/#{theme_id}?include=assets,assets.asset,partials,navigations,layouts,layouts.regions,content-templates,content-templates.blocks,content-templates.displays")
+          .to_return(headers: { 'Content-Type' => 'application/vnd.api+json' }, body: theme_response_payload.to_json)
+
+        stub_request(:patch, "http://example.api.liveeditorapp.com/themes/#{theme_id}")
+          .to_return(status: 200)
+
+        stub_request(:patch, 'http://example.api.liveeditorapp.com/site')
+          .to_return(status: 200)
+
+        output = capture(:stdout) { subject.push }
+        expect(output).to_not include 'Uploading assets...'
+        expect(output).to include ['Publishing assets...', 'Published!'].join("\n")
+        expect(output).to include ['Publishing theme...', 'Published!'].join("\n")
       end
     end
 
@@ -82,7 +384,7 @@ RSpec.describe LiveEditor::CLI::Main do
       include_context 'with partial'
 
       it 'uploads the partial content' do
-        stub_request(:get, 'http://example.api.liveeditorapp.com/site?include=theme')
+        stub_request(:get, 'http://example.api.liveeditorapp.com/site')
           .to_return(headers: { 'Content-Type' => 'application/vnd.api+json' }, body: site_response_payload.to_json)
 
         stub_request(:post, 'http://example.api.liveeditorapp.com/themes')
@@ -92,10 +394,14 @@ RSpec.describe LiveEditor::CLI::Main do
         stub_request(:post, "http://example.api.liveeditorapp.com/themes/#{theme_id}/partials")
           .to_return(status: 201)
 
+        stub_request(:patch, 'http://example.api.liveeditorapp.com/site')
+          .to_return(status: 200)
+
         output = capture(:stdout) { subject.push }
         expect(output).to include 'Uploading partials...'
         expect(output).to include '/partials/header.liquid'
-        expect(output).to_not include 'ERROR'
+        expect(output).to include 'Publishing theme...'
+        expect(output).to include 'Published!'
       end
     end
 
@@ -114,7 +420,7 @@ RSpec.describe LiveEditor::CLI::Main do
       end
 
       it 'uploads the partial content' do
-        stub_request(:get, 'http://example.api.liveeditorapp.com/site?include=theme')
+        stub_request(:get, 'http://example.api.liveeditorapp.com/site')
           .to_return(headers: { 'Content-Type' => 'application/vnd.api+json' }, body: site_response_payload.to_json)
 
         stub_request(:post, 'http://example.api.liveeditorapp.com/themes')
@@ -160,7 +466,7 @@ RSpec.describe LiveEditor::CLI::Main do
       end
 
       it 'uploads the layout content' do
-        stub_request(:get, 'http://example.api.liveeditorapp.com/site?include=theme')
+        stub_request(:get, 'http://example.api.liveeditorapp.com/site')
           .to_return(headers: { 'Content-Type' => 'application/vnd.api+json' }, body: site_response_payload.to_json)
 
         stub_request(:post, 'http://example.api.liveeditorapp.com/themes')
@@ -171,10 +477,14 @@ RSpec.describe LiveEditor::CLI::Main do
           .to_return(status: 201, body: response_payload.to_json,
                      headers: { 'Content-Type' => 'application/vnd.api+json' })
 
+        stub_request(:patch, 'http://example.api.liveeditorapp.com/site')
+          .to_return(status: 200)
+
         output = capture(:stdout) { subject.push }
         expect(output).to include 'Uploading layouts...'
         expect(output).to include '/layouts/site_layout.liquid'
-        expect(output).to_not include 'ERROR'
+        expect(output).to include 'Publishing theme...'
+        expect(output).to include 'Published!'
       end
     end # logged in with layout
 
@@ -203,7 +513,7 @@ RSpec.describe LiveEditor::CLI::Main do
       end
 
       it 'aborts and displays server error' do
-        stub_request(:get, 'http://example.api.liveeditorapp.com/site?include=theme')
+        stub_request(:get, 'http://example.api.liveeditorapp.com/site')
           .to_return(headers: { 'Content-Type' => 'application/vnd.api+json' }, body: site_response_payload.to_json)
 
         stub_request(:post, 'http://example.api.liveeditorapp.com/themes')
@@ -302,7 +612,7 @@ RSpec.describe LiveEditor::CLI::Main do
       end
 
       it 'uploads the layout content' do
-        stub_request(:get, 'http://example.api.liveeditorapp.com/site?include=theme')
+        stub_request(:get, 'http://example.api.liveeditorapp.com/site')
           .to_return(headers: { 'Content-Type' => 'application/vnd.api+json' }, body: site_response_payload.to_json)
 
         stub_request(:post, 'http://example.api.liveeditorapp.com/themes')
@@ -320,10 +630,14 @@ RSpec.describe LiveEditor::CLI::Main do
         stub_request(:patch, "http://example.api.liveeditorapp.com/themes/#{theme_id}/layouts/#{layout_id}/regions/#{region_id}")
           .to_return(status: 200)
 
+        stub_request(:patch, 'http://example.api.liveeditorapp.com/site')
+          .to_return(status: 200)
+
         output = capture(:stdout) { subject.push }
         expect(output).to include 'Uploading layouts...'
         expect(output).to include '/layouts/site_layout.liquid'
-        expect(output).to_not include 'ERROR'
+        expect(output).to include 'Publishing theme...'
+        expect(output).to include 'Published!'
       end
     end # logged in with layout and region
 
@@ -397,7 +711,7 @@ RSpec.describe LiveEditor::CLI::Main do
       end
 
       before do
-        stub_request(:get, 'http://example.api.liveeditorapp.com/site?include=theme')
+        stub_request(:get, 'http://example.api.liveeditorapp.com/site')
           .to_return(headers: { 'Content-Type' => 'application/vnd.api+json' }, body: site_response_payload.to_json)
 
         stub_request(:post, 'http://example.api.liveeditorapp.com/themes')
@@ -437,7 +751,7 @@ RSpec.describe LiveEditor::CLI::Main do
       end
 
       before do
-        stub_request(:get, 'http://example.api.liveeditorapp.com/site?include=theme')
+        stub_request(:get, 'http://example.api.liveeditorapp.com/site')
           .to_return(headers: { 'Content-Type' => 'application/vnd.api+json' }, body: site_response_payload.to_json)
 
         stub_request(:post, 'http://example.api.liveeditorapp.com/themes')
@@ -489,7 +803,7 @@ RSpec.describe LiveEditor::CLI::Main do
       end
 
       it 'uploads the content template' do
-        stub_request(:get, 'http://example.api.liveeditorapp.com/site?include=theme')
+        stub_request(:get, 'http://example.api.liveeditorapp.com/site')
           .to_return(headers: { 'Content-Type' => 'application/vnd.api+json' }, body: site_response_payload.to_json)
 
         stub_request(:post, 'http://example.api.liveeditorapp.com/themes')
@@ -503,10 +817,14 @@ RSpec.describe LiveEditor::CLI::Main do
         stub_request(:post, "http://example.api.liveeditorapp.com/themes/#{theme_id}/content-templates/#{content_template_id}/blocks")
           .to_return(status: 200)
 
+        stub_request(:patch, 'http://example.api.liveeditorapp.com/site')
+          .to_return(status: 200)
+
         output = capture(:stdout) { subject.push }
         expect(output).to include 'Uploading content templates...'
         expect(output).to include 'Article'
-        expect(output).to_not include 'ERROR'
+        expect(output).to include 'Publishing theme...'
+        expect(output).to include 'Published!'
       end
     end # logged in with content template and block
 
@@ -538,7 +856,7 @@ RSpec.describe LiveEditor::CLI::Main do
       end
 
       before do
-        stub_request(:get, 'http://example.api.liveeditorapp.com/site?include=theme')
+        stub_request(:get, 'http://example.api.liveeditorapp.com/site')
           .to_return(headers: { 'Content-Type' => 'application/vnd.api+json' }, body: site_response_payload.to_json)
 
         stub_request(:post, 'http://example.api.liveeditorapp.com/themes')
@@ -593,7 +911,7 @@ RSpec.describe LiveEditor::CLI::Main do
       end
 
       it 'uploads the content template' do
-        stub_request(:get, 'http://example.api.liveeditorapp.com/site?include=theme')
+        stub_request(:get, 'http://example.api.liveeditorapp.com/site')
           .to_return(headers: { 'Content-Type' => 'application/vnd.api+json' }, body: site_response_payload.to_json)
 
         stub_request(:post, 'http://example.api.liveeditorapp.com/themes')
@@ -607,11 +925,15 @@ RSpec.describe LiveEditor::CLI::Main do
         stub_request(:post, "http://example.api.liveeditorapp.com/themes/#{theme_id}/content-templates/#{content_template_id}/displays")
           .to_return(status: 200)
 
+        stub_request(:patch, 'http://example.api.liveeditorapp.com/site')
+          .to_return(status: 200)
+
         output = capture(:stdout) { subject.push }
         expect(output).to include 'Uploading content templates...'
         expect(output).to include 'Article'
         expect(output).to include '/content_templates/article/default_display.liquid'
-        expect(output).to_not include 'ERROR'
+        expect(output).to include 'Publishing theme...'
+        expect(output).to include 'Published!'
       end
     end # logged in with content template and display
 
@@ -643,7 +965,7 @@ RSpec.describe LiveEditor::CLI::Main do
       end
 
       it 'uploads the content template' do
-        stub_request(:get, 'http://example.api.liveeditorapp.com/site?include=theme')
+        stub_request(:get, 'http://example.api.liveeditorapp.com/site')
           .to_return(headers: { 'Content-Type' => 'application/vnd.api+json' }, body: site_response_payload.to_json)
 
         stub_request(:post, 'http://example.api.liveeditorapp.com/themes')
@@ -715,7 +1037,7 @@ NAV
       end
 
       before do
-        stub_request(:get, 'http://example.api.liveeditorapp.com/site?include=theme')
+        stub_request(:get, 'http://example.api.liveeditorapp.com/site')
           .to_return(headers: { 'Content-Type' => 'application/vnd.api+json' }, body: site_response_payload.to_json)
 
         stub_request(:post, 'http://example.api.liveeditorapp.com/themes')
@@ -726,12 +1048,17 @@ NAV
           .with(body: request_payload.to_json)
           .to_return(status: 201, body: response_payload.to_json,
                      headers: { 'Content-Type' => 'application/vnd.api+json' })
+
+        stub_request(:patch, 'http://example.api.liveeditorapp.com/site')
+          .to_return(status: 200)
       end
 
       it 'uploads the navigation' do
         output = capture(:stdout) { subject.push }
         expect(output).to include 'Uploading navigation menus...'
         expect(output).to include 'Global'
+        expect(output).to include 'Publishing theme...'
+        expect(output).to include 'Published!'
       end
     end # logged in with navigation
 
@@ -764,7 +1091,7 @@ NAV
       end
 
       before do
-        stub_request(:get, 'http://example.api.liveeditorapp.com/site?include=theme')
+        stub_request(:get, 'http://example.api.liveeditorapp.com/site')
           .to_return(headers: { 'Content-Type' => 'application/vnd.api+json' }, body: site_response_payload.to_json)
 
         stub_request(:post, 'http://example.api.liveeditorapp.com/themes')
@@ -781,6 +1108,37 @@ NAV
         expect(output).to include '`title` has already been taken'
       end
     end # logged in with navigation and server error
+
+    context 'logged in with site publish error' do
+      include_context 'minimal valid theme', false
+      include_context 'within theme root'
+      include_context 'logged in'
+
+      let (:error_payload) do
+        {
+          errors: [
+            { detail: 'has already been taken', source: { pointer: '/data/attributes/subdomain-slug' } }
+          ]
+        }
+      end
+
+      it 'displays and error' do
+        stub_request(:get, 'http://example.api.liveeditorapp.com/site')
+          .to_return(headers: { 'Content-Type' => 'application/vnd.api+json' }, body: site_response_payload.to_json)
+
+        stub_request(:post, 'http://example.api.liveeditorapp.com/themes')
+          .to_return(status: 201, body: theme_response_payload.to_json,
+                     headers: { 'Content-Type' => 'application/vnd.api+json' })
+
+        stub_request(:patch, 'http://example.api.liveeditorapp.com/site')
+          .to_return(status: 422, body: error_payload.to_json,
+                     headers: { 'Content-Type' => 'application/vnd.api+json' })
+
+        output = capture(:stdout) { subject.push }
+        expect(output).to include 'Publishing theme...'
+        expect(output).to include '`subdomain_slug` has already been taken'
+      end
+    end
 
     context 'outside of theme root', fakefs: true do
       include_context 'outside of theme root'

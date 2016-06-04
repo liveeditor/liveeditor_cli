@@ -10,6 +10,7 @@ module LiveEditor
         # -  `title` - Title of content template.
         #
         # Optional attributes:
+        #
         # -  `var_name` - Variable name used to reference this content template
         #    in other parts of the theme.
         # -  `folder_name` - Name of content template display file. For example:

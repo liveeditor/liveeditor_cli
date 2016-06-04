@@ -17,6 +17,7 @@ module LiveEditor
         # -  `position` - Order in which to display this block in the editor.
         #
         # Optional attributes:
+        #
         # -  `var_name` - Variable name used to reference this block in display
         #    code and other parts of the theme.
         # -  `description` - Description of block to display on editor

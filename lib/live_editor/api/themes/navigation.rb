@@ -14,6 +14,7 @@ module LiveEditor
         #    navigation menu.
         #
         # Optional attributes:
+        #
         # -  `var_name` - This will be used to reference this navigation menu
         #    within a navigation tag in a layout or content template display. If
         #    not provided, `var_name` defaults to the value of `title`, all

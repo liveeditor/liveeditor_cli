@@ -13,6 +13,7 @@ module LiveEditor
         # -  `content` - Contents of layout.
         #
         # Optional attributes:
+        #
         # -  `description` - Description of layout.
         # -  `unique` - Whether or not only one page in the entire site may
         #    reference this layout. (Defaults to `false`.)
