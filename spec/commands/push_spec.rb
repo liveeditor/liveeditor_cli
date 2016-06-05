@@ -13,6 +13,7 @@ RSpec.describe LiveEditor::CLI::Main do
   let(:region_id)           { SecureRandom.uuid }
   let(:navigation_id)       { SecureRandom.uuid }
   let(:asset_id)            { SecureRandom.uuid }
+  let(:asset_upload_id)     { SecureRandom.uuid }
   let(:asset_image_id)      { SecureRandom.uuid }
 
   let(:site_response_payload) do
@@ -69,8 +70,16 @@ RSpec.describe LiveEditor::CLI::Main do
       let(:upload_response) do
         {
           data: {
-            type: 'assets',
-            id: asset_id
+            type: 'asset-uploads',
+            id: asset_upload_id,
+            relationships: {
+              asset: {
+                data: {
+                  type: 'assets',
+                  id: asset_id
+                }
+              }
+            }
           }
         }
       end
@@ -252,8 +261,16 @@ RSpec.describe LiveEditor::CLI::Main do
       let(:upload_response) do
         {
           data: {
-            type: 'assets',
-            id: asset_id
+            type: 'asset-uploads',
+            id: asset_upload_id,
+            relationships: {
+              asset: {
+                data: {
+                  type: 'assets',
+                  id: asset_id
+                }
+              }
+            }
           }
         }
       end

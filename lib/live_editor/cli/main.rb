@@ -267,6 +267,7 @@ module LiveEditor
         else
           return LiveEditor::CLI::display_server_errors_for(response)
         end
+        say ''
 
         # Upload assets.
         files = Dir.glob(theme_root + '/assets/**/*').reject { |file| File.directory?(file) }
@@ -283,7 +284,7 @@ module LiveEditor
               # Determine whether or not this asset is already uploaded to the server.
               if current_theme.present?
                 existing_assets = current_theme['included'].select do |asset|
-                  asset['attributes']['theme-path'] == file_name
+                  asset['type'] == 'assets' && asset['attributes']['theme-path'] == file_name
                 end
 
                 matched_asset = find_theme_asset(existing_assets, file_to_upload, current_theme)
@@ -294,14 +295,16 @@ module LiveEditor
                 say("/assets/#{file_name} - already uploaded, skipping")
                 theme_asset_ids << matched_asset['id']
               else
-                say("/assets/#{file_name}")
+                say("/assets/#{file_name} - uploading")
                 content_type = LiveEditor::CLI::Uploads::ContentTypeDetector.new(file).detect
 
                 response = LiveEditor::CLI::request do
                   LiveEditor::API::Themes::Assets::Upload.create(theme_id, file_to_upload, file_name, content_type)
                 end
 
-                theme_asset_ids << response.parsed_body['data']['id']
+                # The `asset-upload` is returned, but it contains an `asset`
+                # relationship containing the root `asset` record.
+                theme_asset_ids << response.parsed_body['data']['relationships']['asset']['data']['id']
               end
             end
 
@@ -479,95 +482,99 @@ module LiveEditor
           File.directory?(file) || file == "#{theme_root}/layouts/layouts.json"
         end
 
-        say 'Uploading layouts...' if files.any?
+        if files.any?
+          say 'Uploading layouts...'
 
-        files.each_with_index do |file, index|
-          file_name = file.sub(theme_root, '').sub('/layouts/', '')
-          say('/layouts/' + file_name)
+          files.each_with_index do |file, index|
+            file_name = file.sub(theme_root, '').sub('/layouts/', '')
+            say('/layouts/' + file_name)
 
-          # Grab entry for layout from `layouts.config`.
-          config_entry = layouts_config.layouts.select do |config|
-            config['file_name'] == file_name.sub('_layout.liquid', '') ||
-              config['title'].underscore == file_name.sub('_layout.liquid', '')
-          end.first
+            # Grab entry for layout from `layouts.config`.
+            config_entry = layouts_config.layouts.select do |config|
+              config['file_name'] == file_name.sub('_layout.liquid', '') ||
+                config['title'].underscore == file_name.sub('_layout.liquid', '')
+            end.first
 
-          response = nil # Scope this outside of the File.open block below so we can access it aferward.
+            response = nil # Scope this outside of the File.open block below so we can access it aferward.
 
-          File.open(file) do |file_to_upload|
-            response = LiveEditor::CLI::request do
-              LiveEditor::API::Themes::Layout.create theme_id, config_entry['title'], file_name, file_to_upload.read,
-                                                     description: config_entry['description'],
-                                                     unique: config_entry['unique']
+            File.open(file) do |file_to_upload|
+              response = LiveEditor::CLI::request do
+                LiveEditor::API::Themes::Layout.create theme_id, config_entry['title'], file_name, file_to_upload.read,
+                                                       description: config_entry['description'],
+                                                       unique: config_entry['unique']
+              end
+            end
+
+            # Error
+            if response.error?
+              return LiveEditor::CLI::display_server_errors_for(response, prefix: "Layout in position #{index + 1}:")
+            end
+
+            # Successful response: process regions
+            response_body = response.parsed_body
+
+            server_regions = if response_body.has_key?('included')
+              response_body['included'].select { |data| data['type'] == 'regions' }
+            else
+              []
+            end
+
+            # Grab regions from layout config.
+            regions_config = config_entry['regions'] || []
+
+            # Loop through regions from server and "fill in the blanks" with matching config.
+            server_regions.each do |server_region|
+              region_config = regions_config.select do |config|
+                var_name = config['var_name'] || LiveEditor::CLI::naming_for(config['title'])[:var_name]
+                var_name == server_region['attributes']['var-name']
+              end
+
+              if region_config.any?
+                region_config = region_config.first
+                region_attrs = {}
+
+                if region_config['title'].present? && region_config['title'] != server_region['title']
+                  region_attrs['title'] = region_config['title']
+                end
+
+                if region_config['description'] != server_region['description']
+                  region_attrs['description'] = region_config['description'].present? ? region_config['description'] : nil
+                end
+
+                if region_config['max_num_content'] != server_region['max_num_content']
+                  region_attrs['max_num_content'] = region_config['max_num_content']
+                end
+
+                if region_config['content_templates'].present? && region_config['content_templates'].any?
+                  content_template_ids = []
+
+                  region_config['content_templates'].each do |var_name|
+                    content_template_ids << content_templates[var_name]['id']
+                  end
+
+                  region_attrs['content_templates'] = content_template_ids
+                end
+
+                # Only update if there are updates to send.
+                unless region_attrs.empty?
+                  layout_id = response_body['data']['id']
+                  region_id = server_region['id']
+
+                  response = LiveEditor::CLI::request do
+                    LiveEditor::API::Themes::Region.update(theme_id, layout_id, region_id, region_attrs)
+                  end
+
+                  if response.error?
+                    LiveEditor::CLI::display_server_errors_for response,
+                                                               prefix: "Region `#{server_region['attributes']['title']}`:"
+                    return
+                  end
+                end
+              end
             end
           end
 
-          # Error
-          if response.error?
-            return LiveEditor::CLI::display_server_errors_for(response, prefix: "Layout in position #{index + 1}:")
-          end
-
-          # Successful response: process regions
-          response_body = response.parsed_body
-
-          server_regions = if response_body.has_key?('included')
-            response_body['included'].select { |data| data['type'] == 'regions' }
-          else
-            []
-          end
-
-          # Grab regions from layout config.
-          regions_config = config_entry['regions'] || []
-
-          # Loop through regions from server and "fill in the blanks" with matching config.
-          server_regions.each do |server_region|
-            region_config = regions_config.select do |config|
-              var_name = config['var_name'] || LiveEditor::CLI::naming_for(config['title'])[:var_name]
-              var_name == server_region['attributes']['var-name']
-            end
-
-            if region_config.any?
-              region_config = region_config.first
-              region_attrs = {}
-
-              if region_config['title'].present? && region_config['title'] != server_region['title']
-                region_attrs['title'] = region_config['title']
-              end
-
-              if region_config['description'] != server_region['description']
-                region_attrs['description'] = region_config['description'].present? ? region_config['description'] : nil
-              end
-
-              if region_config['max_num_content'] != server_region['max_num_content']
-                region_attrs['max_num_content'] = region_config['max_num_content']
-              end
-
-              if region_config['content_templates'].present? && region_config['content_templates'].any?
-                content_template_ids = []
-
-                region_config['content_templates'].each do |var_name|
-                  content_template_ids << content_templates[var_name]['id']
-                end
-
-                region_attrs['content_templates'] = content_template_ids
-              end
-
-              # Only update if there are updates to send.
-              unless region_attrs.empty?
-                layout_id = response_body['data']['id']
-                region_id = server_region['id']
-
-                response = LiveEditor::CLI::request do
-                  LiveEditor::API::Themes::Region.update(theme_id, layout_id, region_id, region_attrs)
-                end
-
-                if response.error?
-                  LiveEditor::CLI::display_server_errors_for response,
-                                                             prefix: "Region `#{server_region['attributes']['title']}`:"
-                  return
-                end
-              end
-            end
-          end
+          say ''
         end
 
         # Make new theme live
@@ -612,7 +619,8 @@ module LiveEditor
             asset = existing_assets.select do |existing_asset|
               # Find sub-asset
               sub_asset = current_theme['included'].select do |asset|
-                asset['type'].start_with?('asset-') && asset['id'] == existing_asset['relationships']['asset']['data']['id']
+                asset['type'].start_with?('asset-') &&
+                  asset['id'] == existing_asset['relationships']['asset']['data']['id']
               end
 
               fingerprint == sub_asset.first['attributes']['fingerprint']
