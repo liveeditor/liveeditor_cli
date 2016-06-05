@@ -1,8 +1,5 @@
 require 'spec_helper'
 
-# stub_request(:get, "http://example.api.liveeditorapp.com/themes/#{theme_id}?include=partials,navigations,layouts,layouts.regions,content-templates,content-templates.blocks,content-templates.displays")
-#   .to_return(headers: { 'Content-Type' => 'application/vnd.api+json' }, body: site_response_payload.to_json)
-
 RSpec.describe LiveEditor::CLI::Main do
   let(:site_id)             { SecureRandom.uuid }
   let(:theme_id)            { SecureRandom.uuid }
@@ -12,6 +9,7 @@ RSpec.describe LiveEditor::CLI::Main do
   let(:layout_id)           { SecureRandom.uuid }
   let(:region_id)           { SecureRandom.uuid }
   let(:navigation_id)       { SecureRandom.uuid }
+  let(:theme_asset_id)      { SecureRandom.uuid }
   let(:asset_id)            { SecureRandom.uuid }
   let(:asset_upload_id)     { SecureRandom.uuid }
   let(:asset_image_id)      { SecureRandom.uuid }
@@ -40,7 +38,7 @@ RSpec.describe LiveEditor::CLI::Main do
         'type' => 'themes',
         'id' => theme_id,
         'relationships' => {
-          'assets' => {
+          'theme-assets' => {
             'data' => []
           },
           'layouts' => {
@@ -110,8 +108,7 @@ RSpec.describe LiveEditor::CLI::Main do
           .to_return(status: 200)
 
         output = capture(:stdout) { subject.push }
-        expect(output).to include ['Uploading assets...', '/assets/images/logo.png'].join("\n")
-        expect(output).to include ['Publishing assets...', 'Published!'].join("\n")
+        expect(output).to include ['Uploading assets...', "/assets/images/logo.png - uploading"].join("\n")
         expect(output).to include ['Publishing theme...', 'Published!'].join("\n")
       end
     end
@@ -128,22 +125,35 @@ RSpec.describe LiveEditor::CLI::Main do
           'id' => theme_id
         }
 
-        theme_response_payload['data']['relationships']['assets']['data'] << {
-          'type' => 'assets',
-          'id' => asset_id
+        theme_response_payload['data']['relationships']['theme-assets']['data'] << {
+          'type' => 'theme-assets',
+          'id' => theme_asset_id
         }
 
         theme_response_payload['included'] = [
           {
+            'type' => 'theme-assets',
+            'id' => theme_asset_id,
+            'attributes' => {
+              'path' => 'images/logo.png'
+            },
+            'relationships' => {
+              'asset' => {
+                'data' => {
+                  'type' => 'assets',
+                  'id' => asset_id
+                }
+              }
+            }
+          },
+          {
             'type' => 'assets',
             'id' => asset_id,
             'attributes' => {
-              'for-theme' => true,
               'title' => nil,
               'content-type' => 'image/png',
               'type' => 'image',
-              'subtype' => 'png',
-              'theme-path' => 'images/logo.png'
+              'subtype' => 'png'
             },
             'relationships' => {
               'asset' => {
@@ -179,22 +189,21 @@ RSpec.describe LiveEditor::CLI::Main do
         stub_request(:get, 'http://example.api.liveeditorapp.com/site')
           .to_return(headers: { 'Content-Type' => 'application/vnd.api+json' }, body: site_response_payload.to_json)
 
-        stub_request(:get, "http://example.api.liveeditorapp.com/themes/#{theme_id}?include=assets,assets.asset,partials,navigations,layouts,layouts.regions,content-templates,content-templates.blocks,content-templates.displays")
+        stub_request(:get, "http://example.api.liveeditorapp.com/themes/#{theme_id}?include=theme-assets,theme-assets.asset,theme-assets.asset.asset,partials,navigations,layouts,layouts.regions,content-templates,content-templates.blocks,content-templates.displays")
           .to_return(headers: { 'Content-Type' => 'application/vnd.api+json' }, body: theme_response_payload.to_json)
 
         stub_request(:post, 'http://example.api.liveeditorapp.com/themes')
           .to_return(status: 201, body: theme_response_payload.to_json,
                      headers: { 'Content-Type' => 'application/vnd.api+json' })
 
-        stub_request(:patch, "http://example.api.liveeditorapp.com/themes/#{theme_id}")
-          .to_return(status: 200)
+        stub_request(:post, "http://example.api.liveeditorapp.com/themes/#{theme_id}/assets")
+          .to_return(status: 201)
 
         stub_request(:patch, 'http://example.api.liveeditorapp.com/site')
           .to_return(status: 200)
 
         output = capture(:stdout) { subject.push }
         expect(output).to include ['Uploading assets...', '/assets/images/logo.png - already uploaded, skipping'].join("\n")
-        expect(output).to include ['Publishing assets...', 'Published!'].join("\n")
         expect(output).to include ['Publishing theme...', 'Published!'].join("\n")
       end
     end
@@ -211,22 +220,35 @@ RSpec.describe LiveEditor::CLI::Main do
           'id' => theme_id
         }
 
-        theme_response_payload['data']['relationships']['assets']['data'] << {
-          'type' => 'assets',
-          'id' => asset_id
+        theme_response_payload['data']['relationships']['theme-assets']['data'] << {
+          'type' => 'theme-assets',
+          'id' => theme_asset_id
         }
 
         theme_response_payload['included'] = [
           {
+            'type' => 'theme-assets',
+            'id' => theme_asset_id,
+            'attributes' => {
+              'path' => 'images/logo.png'
+            },
+            'relationships' => {
+              'asset' => {
+                'data' => {
+                  'type' => 'assets',
+                  'id' => asset_id
+                }
+              }
+            }
+          },
+          {
             'type' => 'assets',
             'id' => asset_id,
             'attributes' => {
-              'for-theme' => true,
               'title' => nil,
               'content-type' => 'image/png',
               'type' => 'image',
-              'subtype' => 'png',
-              'theme-path' => 'images/logo.png'
+              'subtype' => 'png'
             },
             'relationships' => {
               'asset' => {
@@ -283,7 +305,7 @@ RSpec.describe LiveEditor::CLI::Main do
           .to_return(status: 201, body: theme_response_payload.to_json,
                      headers: { 'Content-Type' => 'application/vnd.api+json' })
 
-        stub_request(:get, "http://example.api.liveeditorapp.com/themes/#{theme_id}?include=assets,assets.asset,partials,navigations,layouts,layouts.regions,content-templates,content-templates.blocks,content-templates.displays")
+        stub_request(:get, "http://example.api.liveeditorapp.com/themes/#{theme_id}?include=theme-assets,theme-assets.asset,theme-assets.asset.asset,partials,navigations,layouts,layouts.regions,content-templates,content-templates.blocks,content-templates.displays")
           .to_return(headers: { 'Content-Type' => 'application/vnd.api+json' }, body: theme_response_payload.to_json)
 
         stub_request(:post, "http://example.api.liveeditorapp.com/themes/#{theme_id}/assets/signatures")
@@ -304,14 +326,11 @@ RSpec.describe LiveEditor::CLI::Main do
           .to_return(status: 200)
 
         output = capture(:stdout) { subject.push }
-        expect(output).to include ['Uploading assets...', '/assets/images/logo.png'].join("\n")
-        expect(output).to_not include 'already uploaded, skipping'
-        expect(output).to include ['Publishing assets...', 'Published!'].join("\n")
+        expect(output).to include ['Uploading assets...', '/assets/images/logo.png - uploading'].join("\n")
         expect(output).to include ['Publishing theme...', 'Published!'].join("\n")
       end
     end
 
-    # TODO
     context 'logged in with removed image asset' do
       include_context 'minimal valid theme', false
       include_context 'within theme root'
@@ -323,22 +342,33 @@ RSpec.describe LiveEditor::CLI::Main do
           'id' => theme_id
         }
 
-        theme_response_payload['data']['relationships']['assets']['data'] << {
-          'type' => 'assets',
-          'id' => asset_id
+        theme_response_payload['data']['relationships']['theme-assets']['data'] << {
+          'type' => 'theme-assets',
+          'id' => theme_asset_id
         }
 
         theme_response_payload['included'] = [
           {
+            'type' => 'theme-assets',
+            'id' => theme_asset_id,
+            'attributes' => {
+              'path' => 'images/logo.png'
+            },
+            'relationships' => {
+              'asset' => {
+                'type' => 'assets',
+                'id' => asset_id
+              }
+            }
+          },
+          {
             'type' => 'assets',
             'id' => asset_id,
             'attributes' => {
-              'for-theme' => true,
               'title' => nil,
               'content-type' => 'image/png',
               'type' => 'image',
-              'subtype' => 'png',
-              'theme-path' => 'images/logo.png'
+              'subtype' => 'png'
             },
             'relationships' => {
               'asset' => {
@@ -378,7 +408,7 @@ RSpec.describe LiveEditor::CLI::Main do
           .to_return(status: 201, body: theme_response_payload.to_json,
                      headers: { 'Content-Type' => 'application/vnd.api+json' })
 
-        stub_request(:get, "http://example.api.liveeditorapp.com/themes/#{theme_id}?include=assets,assets.asset,partials,navigations,layouts,layouts.regions,content-templates,content-templates.blocks,content-templates.displays")
+        stub_request(:get, "http://example.api.liveeditorapp.com/themes/#{theme_id}?include=theme-assets,theme-assets.asset,theme-assets.asset.asset,partials,navigations,layouts,layouts.regions,content-templates,content-templates.blocks,content-templates.displays")
           .to_return(headers: { 'Content-Type' => 'application/vnd.api+json' }, body: theme_response_payload.to_json)
 
         stub_request(:patch, "http://example.api.liveeditorapp.com/themes/#{theme_id}")
@@ -389,7 +419,6 @@ RSpec.describe LiveEditor::CLI::Main do
 
         output = capture(:stdout) { subject.push }
         expect(output).to_not include 'Uploading assets...'
-        expect(output).to include ['Publishing assets...', 'Published!'].join("\n")
         expect(output).to include ['Publishing theme...', 'Published!'].join("\n")
       end
     end
